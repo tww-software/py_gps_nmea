@@ -15,23 +15,26 @@ class GPRMC(sentence.NMEASentence):
     $GPRMC
     0 - sentence name should be $GPRMC
     1 - time in format hhmmss.microseconds
-    2 - status (A means active)
+    2 - status (A data valid, V data invalid)
     3 - latitude
     4 - latitude compass
     5 - longitude
     6 - longitude compass
     7 - speed in knots
-    8 - ?
+    8 - course over ground
     9 - date in ddmmyy
     10 - magnetic notation
-    11 - ?
+    11 - mode
     12 - checksum
     """
 
-    def __init__(self, sentencelist, errorcheck=True)
-        super().__init__(self, sentencelist, errorcheck=True)
+    def __init__(self, sentencelist, errorcheck=True):
+        super().__init__(sentencelist)
         self.latitude, self.longitude = \
             sentence.latlon_decimaldegrees(
                 self.sentencelist[3], self.sentencelist[4],
                 self.sentencelist[5], self.sentencelist[6])
         self.time = self.sentencelist[1]
+        self.valid = self.check_validity(self.sentencelist[2])
+        self.speed = self.sentencelist[7]
+        self.cog = self.sentencelist[8]

@@ -23,6 +23,8 @@ def latlon_decimaldegrees(nmealat, latchar, nmealon, lonchar):
         latdeg(float): the latitude in decimal degrees
         londeg(float): the longitude in decimal degrees
     """
+    nmealon = float(nmealon)
+    nmealat = float(nmealat)
     londegwhole = int(nmealon/100)
     londecdeg = (nmealon - londegwhole * 100)/60
     londeg = londegwhole + londecdeg
@@ -36,14 +38,14 @@ def latlon_decimaldegrees(nmealat, latchar, nmealon, lonchar):
     return latdeg, londeg
 
 
-def calculate_nmea_checksum(sentence, start='!', seperator=','):
+def calculate_nmea_checksum(sentence, start='$', seperator=','):
     """
     XOR each char with the last, compare the last 2 characters
     with the computed checksum
 
     Args:
         sentence(str): the ais sentence as a string
-        start(str): the start of the sentence default = !
+        start(str): the start of the sentence default = $
         separator(str): character that separates the parts of the nmea sentence
                         default = ,
 
@@ -82,6 +84,7 @@ class NMEASentence():
 
     def __init__(self, sentencelist, errorcheck=True):
         self.sentencelist = sentencelist
+        nmeatext = ','.join(sentencelist)
         self.type = self.sentencelist[0]
         if errorcheck:
             self.checksumok = calculate_nmea_checksum(nmeatext)
@@ -89,3 +92,17 @@ class NMEASentence():
                 raise CheckSumFailed(
                     'nmea sentence checksum failed - {}'.format(
                         ','.join(self.sentencelist)))
+
+    @staticmethod
+    def check_validity(validchar):
+        """
+        check if the sentence is valid 'A' or invalid 'V'
+
+        Args:
+            validchar(str): from the gps status field either 'A' or 'V'
+
+        Returns:
+            True: if validchar is 'A'
+        """
+        if validchar == 'A':
+            return True

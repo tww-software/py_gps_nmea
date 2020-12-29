@@ -27,11 +27,19 @@ class GPGGA(sentence.NMEASentence):
     11 - height of geoid (mean sea level) above WGS84 ellipsoid
     """
 
-    def __init__(self, sentencelist, errorcheck=True)
-        super().__init__(self, sentencelist, errorcheck=True)
+    fix = {'0': 'invalid', '1': 'GPS', '2': 'DGPS', '3': 'PPS',
+           '4': 'Real Time Kinematic', '5': 'Float RTK',
+           '6': 'Estimated (dead reckoning)',
+           '7': 'Manual input mode', '8': 'Simulation mode'}
+
+    def __init__(self, sentencelist, errorcheck=True):
+        super().__init__(sentencelist)
         self.latitude, self.longitude = \
             sentence.latlon_decimaldegrees(
                 self.sentencelist[2], self.sentencelist[3],
                 self.sentencelist[4], self.sentencelist[5])
         self.time = self.sentencelist[1]
-
+        self.fixquality = self.fix[self.sentencelist[6]]
+        self.satellitestracked = self.sentencelist[7]
+        self.altitude = '{} {}'.format(
+            self.sentencelist[9], self.sentencelist[10])
