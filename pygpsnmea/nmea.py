@@ -8,12 +8,14 @@ import pygpsnmea.sentences.sentence
 import pygpsnmea.sentences.gprmc
 import pygpsnmea.sentences.gpgga
 import pygpsnmea.sentences.gpgll
+import pygpsnmea.sentences.gptxt
 
 
 ALLSENTENCES = {
     '$GPRMC': pygpsnmea.sentences.gprmc.GPRMC,
     '$GPGGA': pygpsnmea.sentences.gpgga.GPGGA,
-    '$GPGLL': pygpsnmea.sentences.gpgll.GPGLL}
+    '$GPGLL': pygpsnmea.sentences.gpgll.GPGLL,
+    '$GPTXT': pygpsnmea.sentences.gptxt.GPTXT}
 
 
 def calculate_time_duration(start, end):
