@@ -2,6 +2,7 @@
 manage the NMEA sentences
 """
 
+import datetime
 
 import pygpsnmea.sentences.sentence
 import pygpsnmea.sentences.gprmc
@@ -13,6 +14,24 @@ ALLSENTENCES = {
     '$GPRMC': pygpsnmea.sentences.gprmc.GPRMC,
     '$GPGGA': pygpsnmea.sentences.gpgga.GPGGA,
     '$GPGLL': pygpsnmea.sentences.gpgll.GPGLL}
+
+
+def calculate_time_duration(start, end):
+    """
+    calculate how long between two times
+    
+    Args:
+        start(datetime.datetime): the start time
+        end(datetime.datetime): the end time
+    """
+    timediff = end - start
+    totalseconds = timediff.total_seconds()
+    days, remainder = divmod(totalseconds, 86400)
+    hours, remainder = divmod(remainder, 3600)
+    minutes, seconds = divmod(remainder, 60)
+    duration = {
+        'days': days, 'hours': hours, 'minutes': minutes, 'seconds': seconds}
+    return duration
 
 
 class NoSuitablePositionReport(Exception):
@@ -31,6 +50,7 @@ class NMEASentenceManager():
     def __init__(self):
         self.sentences = []
         self.positions = []
+        self.datetimes = []
         self.checksumerrors = 0
 
     def process_sentence(self, sentence):
@@ -55,6 +75,8 @@ class NMEASentenceManager():
                     newpos['latitude'] = newsentence.latitude
                     newpos['longitude'] = newsentence.longitude
                     newpos['time'] = newsentence.time
+                    if sentencetype == '$GPRMC':
+                        self.datetimes.append(newsentence.datetime)
             except pygpsnmea.sentences.sentence.CheckSumFailed as err:
                 print(str(err))
                 self.checksumerrors += 1
@@ -77,6 +99,21 @@ class NMEASentenceManager():
         except (IndexError, AttributeError) as err:
             raise NoSuitablePositionReport('Unknown') from err
 
+    def get_start_position(self):
+        """
+        return the first known position we have
+
+        Raises:
+            NoSuitablePositionReport: if no position found
+
+        Returns:
+            self.positions(dict): last item in self.positions
+        """
+        try:
+            return self.positions[0]
+        except (IndexError, AttributeError) as err:
+            raise NoSuitablePositionReport('Unknown') from err
+
     def stats(self):
         """
         return stats from this NMEA manager
@@ -84,7 +121,14 @@ class NMEASentenceManager():
         stats = {}
         stats['total sentences'] = len(self.sentences)
         stats['total positions'] = len(self.positions)
-        stats['start time'] = self.positions[0]['time']
-        stats['end time'] = self.positions[len(self.positions) - 1]['time']
+        try:
+            firstpos = self.get_start_position()
+            lastpos = self.get_latest_position()
+        except NoSuitablePositionReport:
+            return stats
+        stats['start position'] = firstpos
+        stats['end position'] = lastpos
         stats['checksum errors'] = self.checksumerrors
+        stats['duration'] = calculate_time_duration(
+            self.datetimes[0], self.datetimes[len(self.datetimes) - 1])
         return stats

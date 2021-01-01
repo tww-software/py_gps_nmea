@@ -5,6 +5,8 @@ Recommended minimum GPS data
 provides Lat/Lon, Speed in knots, time and date
 """
 
+import datetime
+
 import pygpsnmea.sentences.sentence as sentence
 
 
@@ -35,6 +37,9 @@ class GPRMC(sentence.NMEASentence):
                 self.sentencelist[3], self.sentencelist[4],
                 self.sentencelist[5], self.sentencelist[6])
         self.time = self.sentencelist[1]
+        self.date = self.sentencelist[9]
+        self.datetime = datetime.datetime.strptime(
+            '{} {}'.format(self.time, self.date), '%H%M%S.%f %d%m%y')
         self.valid = self.check_validity(self.sentencelist[2])
         self.speed = self.sentencelist[7]
         self.cog = self.sentencelist[8]
