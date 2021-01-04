@@ -2,6 +2,7 @@
 manage the NMEA sentences
 """
 
+import collections
 import datetime
 
 import pygpsnmea.sentences.sentence
@@ -48,9 +49,11 @@ class NMEASentenceManager():
     """
 
     latlons = ('$GPRMC', '$GPGGA', '$GPGLL')
+    validationchecks = ('$GPRMC', '$GPGLL')
 
     def __init__(self):
         self.sentences = []
+        self.sentencetypes = collections.Counter()
         self.positions = []
         self.datetimes = []
         self.checksumerrors = 0
@@ -64,13 +67,14 @@ class NMEASentenceManager():
         """
         sentencelist = sentence.split(',')
         sentencetype = sentencelist[0]
+        self.sentencetypes[sentencetype] += 1
         errorflag = False
         if sentencetype in ALLSENTENCES.keys():
             try:
                 newsentence = ALLSENTENCES[sentencetype](sentencelist)
                 self.sentences.append(newsentence)
                 newpos = {}
-                if sentencetype in ('$GPRMC', '$GPGLL'):
+                if sentencetype in self.validationchecks:
                     if not newsentence.valid:
                         errorflag = True
                 if sentencetype in self.latlons:
@@ -83,7 +87,7 @@ class NMEASentenceManager():
                 print(str(err))
                 self.checksumerrors += 1
                 errorflag = True
-            if not errorflag:
+            if not errorflag and sentencetype in self.latlons:
                 self.positions.append(newpos)
 
     def get_latest_position(self):
@@ -123,6 +127,7 @@ class NMEASentenceManager():
         stats = {}
         stats['total sentences'] = len(self.sentences)
         stats['total positions'] = len(self.positions)
+        stats['checksum errors'] = self.checksumerrors
         try:
             firstpos = self.get_start_position()
             lastpos = self.get_latest_position()
@@ -130,7 +135,7 @@ class NMEASentenceManager():
             return stats
         stats['start position'] = firstpos
         stats['end position'] = lastpos
-        stats['checksum errors'] = self.checksumerrors
         stats['duration'] = calculate_time_duration(
             self.datetimes[0], self.datetimes[len(self.datetimes) - 1])
+        stats['sentence types'] = self.sentencetypes
         return stats
