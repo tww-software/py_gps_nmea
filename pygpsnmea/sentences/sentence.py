@@ -92,17 +92,3 @@ class NMEASentence():
                 raise CheckSumFailed(
                     'nmea sentence checksum failed - {}'.format(
                         ','.join(self.sentencelist)))
-
-    @staticmethod
-    def check_validity(validchar):
-        """
-        check if the sentence is valid 'A' or invalid 'V'
-
-        Args:
-            validchar(str): from the gps status field either 'A' or 'V'
-
-        Returns:
-            True: if validchar is 'A'
-        """
-        if validchar == 'A':
-            return True
