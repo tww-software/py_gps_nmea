@@ -1,7 +1,7 @@
 """
-GPS RMC sentence
+RMC sentence
 
-Recommended minimum GPS data
+Recommended minimum data
 provides Lat/Lon, Speed in knots, time and date
 """
 
@@ -10,12 +10,11 @@ import datetime
 import pygpsnmea.sentences.sentence as sentence
 
 
-class GPRMC(sentence.NMEASentence):
+class RMC(sentence.NMEASentence):
     """
-    GPS RMC sentence
+    RMC sentence
 
-    $GPRMC
-    0 - sentence name should be $GPRMC
+    0 - sentence name
     1 - time in format hhmmss.microseconds
     2 - status (A data valid, V data invalid)
     3 - latitude
@@ -46,3 +45,21 @@ class GPRMC(sentence.NMEASentence):
             self.valid = False
         self.speed = self.sentencelist[7]
         self.cog = self.sentencelist[8]
+
+
+class GPRMC(RMC):
+    """
+    GPS RMC sentence
+    """
+
+
+class GNRMC(RMC):
+    """
+    Global Navigation Satellite System RMC sentence
+    """
+
+
+class GLRMC(RMC):
+    """
+    GLONASS RMC sentence
+    """

@@ -6,17 +6,21 @@ import collections
 import datetime
 import statistics
 
+import pygpsnmea.kml as kml
 import pygpsnmea.sentences.sentence
-import pygpsnmea.sentences.gprmc
-import pygpsnmea.sentences.gpgga
-import pygpsnmea.sentences.gpgll
+import pygpsnmea.sentences.rmc
+import pygpsnmea.sentences.gga
+import pygpsnmea.sentences.gll
 import pygpsnmea.sentences.gptxt
 
 
 ALLSENTENCES = {
-    '$GPRMC': pygpsnmea.sentences.gprmc.GPRMC,
-    '$GPGGA': pygpsnmea.sentences.gpgga.GPGGA,
-    '$GPGLL': pygpsnmea.sentences.gpgll.GPGLL,
+    '$GPRMC': pygpsnmea.sentences.rmc.GPRMC,
+    '$GNRMC': pygpsnmea.sentences.rmc.GNRMC,
+    '$GPGGA': pygpsnmea.sentences.gga.GPGGA,
+    '$GNGGA': pygpsnmea.sentences.gga.GNGGA,
+    '$GPGLL': pygpsnmea.sentences.gll.GPGLL,
+    '$GNGLL': pygpsnmea.sentences.gll.GNGLL,
     '$GPTXT': pygpsnmea.sentences.gptxt.GPTXT}
 
 
@@ -91,11 +95,11 @@ class NMEASentenceManager():
     class to keep track of all the NMEA sentences
     """
 
-    latlons = ('$GPRMC', '$GPGGA', '$GPGLL')
+    latlons = ('$GPRMC', '$GNRMC', '$GPGGA', '$GNGGA', '$GPGLL', '$GNGLL')
     validationchecks = ('$GPRMC', '$GPGLL', '$GPGGA')
-    speeds = ('$GPRMC')
-    altitudes = ('$GPGGA')
-    dateandtime = ('$GPRMC')
+    speeds = ('$GPRMC', '$GNRMC')
+    altitudes = ('$GPGGA', '$GNGGA')
+    dateandtime = ('$GPRMC', '$GNRMC')
 
     def __init__(self):
         self.sentences = []
@@ -133,9 +137,10 @@ class NMEASentenceManager():
                     newpos['altitude'] = newsentence.altitude
                 if sentencetype in self.speeds:
                     newpos['speed (knots)'] = newsentence.speed
-            except pygpsnmea.sentences.sentence.CheckSumFailed as err:
-                print(str(err))
+            except (pygpsnmea.sentences.sentence.CheckSumFailed) as err:
                 self.checksumerrors += 1
+                errorflag = True
+            except ValueError:
                 errorflag = True
             if not errorflag and sentencetype in self.latlons:
                 self.positions.append(newpos)
@@ -194,3 +199,22 @@ class NMEASentenceManager():
         stats['speeds and altitudes'] = calculate_altitudes_and_speeds(
             self.positions)
         return stats
+        
+    def create_kml_map(self, outputfile):
+        """
+        create a kml map from all the positions we have
+        """
+        try:
+            start = self.get_start_position()
+            end = self.get_latest_position()
+        except NoSuitablePositionReport:
+            print('unable to make KML map')
+            return
+        kmlmap = kml.KMLOutputParser(outputfile)
+        kmlmap.create_kml_header('test')
+        kmlmap.add_kml_placemark('start', 'starting position', str(start['longitude']), str(start['latitude']))
+        kmlmap.add_kml_placemark_linestring('linestring', self.positions)    
+        kmlmap.add_kml_placemark('end', 'ending position', str(end['longitude']), str(end['latitude']))
+        kmlmap.close_kml_file()
+        kmlmap.write_kml_doc_file()
+            

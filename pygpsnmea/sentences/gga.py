@@ -1,18 +1,17 @@
 """
-GPS GGA sentence
+GGA sentence
 
-Global Positioning System Fix Data
+Fix Data
 provides Lat/Lon, height above sea level and time
 """
 
 import pygpsnmea.sentences.sentence as sentence
 
 
-class GPGGA(sentence.NMEASentence):
+class GGA(sentence.NMEASentence):
     """
-    GPS GGA sentence
+    GGA sentence
 
-    $GPGGA
     0 - sentence name should be $GPGGA
     1 - time in format hhmmss.microseconds
     2 - latitude
@@ -47,4 +46,21 @@ class GPGGA(sentence.NMEASentence):
             self.valid = True
         else:
             self.valid = False
-        
+
+
+class GPGGA(GGA):
+    """
+    GPS GGA sentence
+    """
+
+
+class GNGGA(GGA):
+    """
+    Global Navigation Satellite System GGA sentence
+    """
+
+
+class GLGGA(GGA):
+    """
+    GLONASS GGA sentence
+    """

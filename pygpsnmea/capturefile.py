@@ -33,3 +33,4 @@ def open_text_file(filepath):
     filestats = sentencemanager.stats()
     filesummary = export.create_summary_text(filestats)
     print(filesummary)
+    sentencemanager.create_kml_map('test.kml')

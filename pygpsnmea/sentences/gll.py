@@ -1,5 +1,5 @@
 """
-GPS GLL sentence
+GLL sentence
 
 Geographic position, latitude, longitude
 """
@@ -7,9 +7,9 @@ Geographic position, latitude, longitude
 import pygpsnmea.sentences.sentence as sentence
 
 
-class GPGLL(sentence.NMEASentence):
+class GLL(sentence.NMEASentence):
     """
-    GPS GLL sentence
+    GLL sentence
 
     0 - sentence name should be $GPGLL
     1 - latitude
@@ -31,3 +31,21 @@ class GPGLL(sentence.NMEASentence):
             self.valid = True
         else:
             self.valid = False
+
+
+class GPGLL(GLL):
+    """
+    GPS GLL sentence
+    """
+
+
+class GNGLL(GLL):
+    """
+    Global Navigation Satellite System GLL sentence
+    """
+
+
+class GLGLL(GLL):
+    """
+    GLONASS GLL sentence
+    """
