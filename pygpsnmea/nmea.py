@@ -6,22 +6,9 @@ import collections
 import datetime
 import statistics
 
+import pygpsnmea.allsentences as allsentences
 import pygpsnmea.kml as kml
-import pygpsnmea.sentences.sentence
-import pygpsnmea.sentences.rmc
-import pygpsnmea.sentences.gga
-import pygpsnmea.sentences.gll
-import pygpsnmea.sentences.gptxt
-
-
-ALLSENTENCES = {
-    '$GPRMC': pygpsnmea.sentences.rmc.GPRMC,
-    '$GNRMC': pygpsnmea.sentences.rmc.GNRMC,
-    '$GPGGA': pygpsnmea.sentences.gga.GPGGA,
-    '$GNGGA': pygpsnmea.sentences.gga.GNGGA,
-    '$GPGLL': pygpsnmea.sentences.gll.GPGLL,
-    '$GNGLL': pygpsnmea.sentences.gll.GNGLL,
-    '$GPTXT': pygpsnmea.sentences.gptxt.GPTXT}
+import pygpsnmea.sentences.sentence as sentences
 
 
 def calculate_time_duration(start, end):
@@ -42,7 +29,8 @@ def calculate_time_duration(start, end):
     hours, remainder = divmod(remainder, 3600)
     minutes, seconds = divmod(remainder, 60)
     duration = {
-        'days': days, 'hours': hours, 'minutes': minutes, 'seconds': seconds}
+        'days': days, 'hours': hours, 'minutes': minutes,
+        'seconds': int(seconds)}
     return duration
 
 
@@ -80,7 +68,7 @@ def calculate_altitudes_and_speeds(positions, altunits='M'):
         altitudeclimbed = round(maxalt - minalt, 3)
         records['maximum altitude ({})'.format(altunits)] = maxalt
         records['minimum altitude ({})'.format(altunits)] = minalt
-        records['altitude climbed ({})'.format(altunits)] = altitudeclimbed
+        records['altitude difference ({})'.format(altunits)] = altitudeclimbed
     return records
 
 
@@ -95,17 +83,12 @@ class NMEASentenceManager():
     class to keep track of all the NMEA sentences
     """
 
-    latlons = ('$GPRMC', '$GNRMC', '$GPGGA', '$GNGGA', '$GPGLL', '$GNGLL')
-    validationchecks = ('$GPRMC', '$GPGLL', '$GPGGA')
-    speeds = ('$GPRMC', '$GNRMC')
-    altitudes = ('$GPGGA', '$GNGGA')
-    dateandtime = ('$GPRMC', '$GNRMC')
-
     def __init__(self):
         self.sentences = []
         self.sentencetypes = collections.Counter()
         self.positions = []
         self.datetimes = []
+        self.lastdate = ''
         self.checksumerrors = 0
 
     def process_sentence(self, sentence):
@@ -119,30 +102,43 @@ class NMEASentenceManager():
         sentencetype = sentencelist[0]
         self.sentencetypes[sentencetype] += 1
         errorflag = False
-        if sentencetype in ALLSENTENCES.keys():
+        if sentencetype in allsentences.ALLSENTENCES.keys():
             try:
-                newsentence = ALLSENTENCES[sentencetype](sentencelist)
+                newsentence = \
+                    allsentences.ALLSENTENCES[sentencetype](sentencelist)
                 self.sentences.append(newsentence)
                 newpos = {}
-                if sentencetype in self.validationchecks:
+                if sentencetype in allsentences.VALIDATIONCHECKS:
                     if not newsentence.valid:
                         errorflag = True
-                if sentencetype in self.latlons:
+                if sentencetype in allsentences.DATE:
+                    if newsentence.date != self.lastdate:
+                        self.lastdate = newsentence.date
+                if sentencetype in allsentences.LATLONTIME:
                     newpos['latitude'] = newsentence.latitude
                     newpos['longitude'] = newsentence.longitude
-                    newpos['time'] = newsentence.time
-                if sentencetype in self.dateandtime:
+                    if self.lastdate != '':
+                        tstr = self.lastdate + ' ' + newsentence.time
+                        newdt = datetime.datetime.strptime(
+                            tstr, '%d%m%y %H%M%S.%f')
+                        newpos['time'] = newdt.strftime('%Y/%m/%d %T')
+                if sentencetype in allsentences.DATETIME:
                     self.datetimes.append(newsentence.datetime)
-                if sentencetype in self.altitudes:
+                if sentencetype in allsentences.ALTITUDES:
                     newpos['altitude'] = newsentence.altitude
-                if sentencetype in self.speeds:
+                if sentencetype in allsentences.SPEEDS:
                     newpos['speed (knots)'] = newsentence.speed
-            except (pygpsnmea.sentences.sentence.CheckSumFailed) as err:
+                if sentencetype in allsentences.FIXQUALITY:
+                    newpos['fix quality'] = newsentence.fixquality
+                if sentencetype in allsentences.SATELLITESTRACKED:
+                    newpos['satellites tracked'] = \
+                        newsentence.satellitestracked
+            except (sentences.CheckSumFailed) as err:
                 self.checksumerrors += 1
                 errorflag = True
             except ValueError:
                 errorflag = True
-            if not errorflag and sentencetype in self.latlons:
+            if not errorflag and sentencetype in allsentences.LATLONTIME:
                 self.positions.append(newpos)
 
     def get_latest_position(self):
@@ -200,7 +196,7 @@ class NMEASentenceManager():
             self.positions)
         return stats
         
-    def create_kml_map(self, outputfile):
+    def create_kml_map(self, outputfile, verbose=True):
         """
         create a kml map from all the positions we have
         """
@@ -212,9 +208,36 @@ class NMEASentenceManager():
             return
         kmlmap = kml.KMLOutputParser(outputfile)
         kmlmap.create_kml_header('test')
-        kmlmap.add_kml_placemark('start', 'starting position', str(start['longitude']), str(start['latitude']))
-        kmlmap.add_kml_placemark_linestring('linestring', self.positions)    
-        kmlmap.add_kml_placemark('end', 'ending position', str(end['longitude']), str(end['latitude']))
+        kmlmap.add_kml_placemark_linestring('linestring', self.positions)
+        kmlmap.add_kml_placemark(
+            'start', 'starting position', str(start['longitude']),
+            str(start['latitude']))
+        if verbose:
+            poscount = 2
+            for posrep in self.positions[1:len(self.positions) - 2]:
+                kmltime = kml.convert_timestamp_to_kmltimestamp(posrep['time'])
+                posdesc = kmlmap.format_kml_placemark_description(posrep)
+                kmlmap.add_kml_placemark(
+                    str(poscount), posdesc, str(posrep['longitude']),
+                    str(posrep['latitude']), timestamp=kmltime)
+                poscount +=1
+        kmlmap.add_kml_placemark(
+            'end', 'ending position', str(end['longitude']),
+            str(end['latitude']))
         kmlmap.close_kml_file()
         kmlmap.write_kml_doc_file()
-            
+
+    def create_positions_table(self):
+        """
+        create a list of lists for csv file export of all the position reports
+        """
+        positiontable = []
+        headers = ['latitude', 'longitude', 'time']
+        positiontable.append(headers)
+        for posrep in self.positions:
+            line = []
+            line.append(posrep['latitude'])
+            line.append(posrep['longitude'])
+            line.append(posrep['time'])
+            positiontable.append(line)
+        return positiontable

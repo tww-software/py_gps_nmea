@@ -34,3 +34,5 @@ def open_text_file(filepath):
     filesummary = export.create_summary_text(filestats)
     print(filesummary)
     sentencemanager.create_kml_map('test.kml')
+    postable = sentencemanager.create_positions_table()
+    export.write_csv_file(postable, 'test.csv')

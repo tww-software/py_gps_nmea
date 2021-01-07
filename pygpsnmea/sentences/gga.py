@@ -5,6 +5,7 @@ Fix Data
 provides Lat/Lon, height above sea level and time
 """
 
+
 import pygpsnmea.sentences.sentence as sentence
 
 

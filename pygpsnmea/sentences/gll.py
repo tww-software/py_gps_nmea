@@ -4,6 +4,7 @@ GLL sentence
 Geographic position, latitude, longitude
 """
 
+
 import pygpsnmea.sentences.sentence as sentence
 
 
