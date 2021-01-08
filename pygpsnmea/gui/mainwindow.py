@@ -18,8 +18,10 @@ import pygpsnmea.export as export
 import pygpsnmea.nmea as nmea
 import pygpsnmea.version as version
 
-import pygpsnmea.gui.textboxtab as textboxtab
+import pygpsnmea.gui.exporttab as exporttab
 import pygpsnmea.gui.positionstab as positionstab
+import pygpsnmea.gui.textboxtab as textboxtab
+
 
 
 class TabControl(tkinter.ttk.Notebook):
@@ -42,6 +44,8 @@ class TabControl(tkinter.ttk.Notebook):
         self.add(self.sentencestab, text='Sentences')
         self.positionstab = positionstab.PosRepTab(self)
         self.add(self.positionstab, text='Position Reports')
+        self.exporttab = exporttab.ExportTab(self)
+        self.add(self.exporttab, text='Export')
 
 class BasicGUI(tkinter.Tk):
     """

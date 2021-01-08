@@ -203,9 +203,9 @@ class NMEASentenceManager():
         try:
             start = self.get_start_position()
             end = self.get_latest_position()
-        except NoSuitablePositionReport:
+        except NoSuitablePositionReport as err:
             print('unable to make KML map')
-            return
+            raise err
         kmlmap = kml.KMLOutputParser(outputfile)
         kmlmap.create_kml_header('test')
         kmlmap.add_kml_placemark_linestring('linestring', self.positions)
