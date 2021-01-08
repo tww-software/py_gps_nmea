@@ -75,6 +75,7 @@ class BasicGUI(tkinter.Tk):
         else:
             res = True
         if res:
+            self.statuslabel.config(text='', bg='light grey')
             self.tabcontrol.sentencestab.clear()
             self.tabcontrol.statstab.statsbox.delete(1.0, tkinter.END)
             self.tabcontrol.positionstab.tree.delete(
@@ -120,6 +121,7 @@ class BasicGUI(tkinter.Tk):
         self.statuslabel.config(
             text='Loading capture file - {}'.format(inputfile),
             fg='black', bg='gold')
+        self.update_idletasks() 
         self.sentencemanager = capturefile.open_text_file(inputfile)
         poscounter = 1
         for pos in self.sentencemanager.positions:
@@ -133,10 +135,10 @@ class BasicGUI(tkinter.Tk):
         printablestats = export.create_summary_text(filestats)
         self.tabcontrol.statstab.statsbox.insert(
             tkinter.INSERT, printablestats)
-        self.update_idletasks()  
         self.statuslabel.config(
             text='Loaded capture file - {}'.format(inputfile),
             fg='black', bg='light grey')
+        self.update_idletasks() 
 
     def quit(self):
         """
