@@ -98,6 +98,7 @@ class NMEASentenceManager():
         Args:
             sentence(str): NMEA sentence
         """
+        self.sentences.append(sentence)
         sentencelist = sentence.split(',')
         sentencetype = sentencelist[0]
         self.sentencetypes[sentencetype] += 1
@@ -106,7 +107,6 @@ class NMEASentenceManager():
             try:
                 newsentence = \
                     allsentences.ALLSENTENCES[sentencetype](sentencelist)
-                self.sentences.append(newsentence)
                 newpos = {}
                 if sentencetype in allsentences.VALIDATIONCHECKS:
                     if not newsentence.valid:

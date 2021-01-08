@@ -5,7 +5,9 @@ command line interface for PY GPS NMEA
 
 import argparse
 
+import pygpsnmea.gui.mainwindow as gui
 import pygpsnmea.capturefile as capturefile
+import pygpsnmea.export as export
 import pygpsnmea.version as version
 
 
@@ -32,7 +34,16 @@ def main():
     cliparser = cli_arg_parser()
     cliargs = cliparser.parse_args()
     if cliargs.inputfile:
-        capturefile.open_text_file(cliargs.inputfile)
+        sentencemanager = capturefile.open_text_file(cliargs.inputfile)
+        filestats = sentencemanager.stats()
+        filesummary = export.create_summary_text(filestats)
+        print(filesummary)
+        sentencemanager.create_kml_map('test.kml')
+        postable = sentencemanager.create_positions_table()
+        export.write_csv_file(postable, 'test.csv')
+    elif cliargs.gui:
+        maingui = gui.BasicGUI()
+        maingui.mainloop()
 
 
 if __name__ == '__main__':
