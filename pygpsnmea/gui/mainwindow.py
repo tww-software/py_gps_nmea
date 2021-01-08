@@ -18,8 +18,7 @@ import pygpsnmea.export as export
 import pygpsnmea.nmea as nmea
 import pygpsnmea.version as version
 
-import pygpsnmea.gui.statstab as statstab
-import pygpsnmea.gui.sentencestab as sentencestab
+import pygpsnmea.gui.textboxtab as textboxtab
 import pygpsnmea.gui.positionstab as positionstab
 
 
@@ -37,9 +36,9 @@ class TabControl(tkinter.ttk.Notebook):
     def __init__(self, window):
         tkinter.ttk.Notebook.__init__(self, window)
         self.window = window
-        self.statstab = statstab.StatsTab(self)
+        self.statstab = textboxtab.TextBoxTab(self)
         self.add(self.statstab, text='Stats')
-        self.sentencestab = sentencestab.TextBoxTab(self)
+        self.sentencestab = textboxtab.TextBoxTab(self)
         self.add(self.sentencestab, text='Sentences')
         self.positionstab = positionstab.PosRepTab(self)
         self.add(self.positionstab, text='Position Reports')
@@ -77,7 +76,7 @@ class BasicGUI(tkinter.Tk):
         if res:
             self.statuslabel.config(text='', bg='light grey')
             self.tabcontrol.sentencestab.clear()
-            self.tabcontrol.statstab.statsbox.delete(1.0, tkinter.END)
+            self.tabcontrol.statstab.clear()
             self.tabcontrol.positionstab.tree.delete(
                     *self.tabcontrol.positionstab.tree.get_children())
 
@@ -133,7 +132,7 @@ class BasicGUI(tkinter.Tk):
             self.tabcontrol.sentencestab.append_text(sentence)
         filestats = self.sentencemanager.stats()
         printablestats = export.create_summary_text(filestats)
-        self.tabcontrol.statstab.statsbox.insert(
+        self.tabcontrol.statstab.txtbox.insert(
             tkinter.INSERT, printablestats)
         self.statuslabel.config(
             text='Loaded capture file - {}'.format(inputfile),

@@ -1,4 +1,6 @@
-
+"""
+useful tab with a single scrollable text box
+"""
 
 import tkinter
 
@@ -6,7 +8,7 @@ import tkinter
 
 class TextBoxTab(tkinter.ttk.Frame):
     """
-    tab to display all the NMEA Sentences
+    tab to display NMEA Sentences, statistics and large text strings
 
     Note:
         basically a tab with a big text box on it that autoscrolls as you
