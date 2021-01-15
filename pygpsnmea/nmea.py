@@ -97,6 +97,9 @@ class NMEASentenceManager():
 
         Args:
             sentence(str): NMEA sentence
+            
+        Returns:
+            newpos(dict): position report
         """
         self.sentences.append(sentence)
         sentencelist = sentence.split(',')
@@ -140,6 +143,7 @@ class NMEASentenceManager():
                 errorflag = True
             if not errorflag and sentencetype in allsentences.LATLONTIME:
                 self.positions.append(newpos)
+                return newpos
 
     def get_latest_position(self):
         """

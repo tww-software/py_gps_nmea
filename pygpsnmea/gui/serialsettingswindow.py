@@ -29,15 +29,17 @@ class SerialSettingsWindow(tkinter.Toplevel):
         """
         group all the network settings within a tkinter LabelFrame
         """
-        netgroup = tkinter.LabelFrame(
+        serialgroup = tkinter.LabelFrame(
             self, text="Network settings", padx=10, pady=10)
-        netgroup.pack(fill="both", expand="yes")
-        devicelabel = tkinter.Label(netgroup, text='Serial Device')
+        serialgroup.pack(fill="both", expand="yes")
+        devicelabel = tkinter.Label(serialgroup, text='Serial Device')
         devicelabel.pack()
-        self.device = tkinter.Entry(netgroup)
+        self.device = tkinter.Entry(serialgroup)
         self.device.insert(0, self.window.serialsettings['Serial Device'])
         self.device.pack()
-        self.baudrate = tkinter.ttk.Combobox(self)
+        baudratelabel = tkinter.Label(serialgroup, text='Baud Rate')
+        baudratelabel.pack()
+        self.baudrate = tkinter.ttk.Combobox(serialgroup)
         self.baudrate['values'] = (
             1200, 2400, 4800, 9600, 19200, 38400, 57600, 115200)
         self.baudrate.set(self.window.serialsettings['Baud Rate'])

@@ -58,16 +58,24 @@ class ExportTab(tkinter.ttk.Frame):
         choose which export command to run from the exportoptions drop down
         in the Export tab
         """
-        commands = {
-            'CSV': self.export_csv,
-            'KML': self.export_kml}
-        option = self.exportoptions.get()
-        try:
-            commands[option]()
-            tkinter.messagebox.showinfo(
-                'Export Files', 'Export Successful')
-        except Exception as err:
-            tkinter.messagebox.showerror(type(err).__name__, str(err))
+        if self.tabs.window.serialread:
+            tkinter.messagebox.showwarning(
+                'WARNING',
+                'Cannot export files whilst reading from serial interface')
+        elif len(self.tabs.window.sentencemanager.positions) == 0:
+            tkinter.messagebox.showwarning(
+                'WARNING', 'No positions to export.')
+        else:
+            commands = {
+                'CSV': self.export_csv,
+                'KML': self.export_kml}
+            option = self.exportoptions.get()
+            try:
+                commands[option]()
+                tkinter.messagebox.showinfo(
+                    'Export Files', 'Export Successful')
+            except Exception as err:
+                tkinter.messagebox.showerror(type(err).__name__, str(err))
 
     def show_export_help(self, event=None):
         """
