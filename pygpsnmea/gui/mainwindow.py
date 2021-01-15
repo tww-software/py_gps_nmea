@@ -21,7 +21,7 @@ import pygpsnmea.version as version
 import pygpsnmea.gui.exporttab as exporttab
 import pygpsnmea.gui.positionstab as positionstab
 import pygpsnmea.gui.textboxtab as textboxtab
-
+import pygpsnmea.gui.serialsettingswindow as serialsettingswindow
 
 
 class TabControl(tkinter.ttk.Notebook):
@@ -58,6 +58,12 @@ class BasicGUI(tkinter.Tk):
         
     """
 
+    serialsettings = {'Serial Device': '',
+                      'Baud Rate': 9600,
+                      'Log File Path': '',
+                      'KML File Path': ''}
+
+
     def __init__(self):
         tkinter.Tk.__init__(self)
         self.sentencemanager = nmea.NMEASentenceManager()
@@ -65,6 +71,7 @@ class BasicGUI(tkinter.Tk):
         self.title('PY GPS NMEA - ' + version.VERSION)
         self.statuslabel = tkinter.Label(self, text='', bg='light grey')
         self.statuslabel.pack(fill=tkinter.X)
+        self.serialread = False
         self.tabcontrol = TabControl(self)
         self.tabcontrol.pack(expand=1, fill='both')
         self.top_menu()
@@ -84,6 +91,12 @@ class BasicGUI(tkinter.Tk):
             self.tabcontrol.positionstab.tree.delete(
                     *self.tabcontrol.positionstab.tree.get_children())
 
+    def serial_settings(self):
+        """
+        open the serial settings window
+        """
+        serialsettingswindow.SerialSettingsWindow(self)
+
     def top_menu(self):
         """
         format and add the top menu to the main window
@@ -93,10 +106,14 @@ class BasicGUI(tkinter.Tk):
         openfileitem.add_command(label='Open', command=self.open_file)
         openfileitem.add_command(label='Clear GUI', command=self.clear_gui)
         openfileitem.add_command(label='Quit', command=self.quit)
-        menu.add_cascade(label='File', menu=openfileitem)
+        settingsitem = tkinter.Menu(menu, tearoff=0)
+        settingsitem.add_command(
+            label='Serial', command=self.serial_settings)
         helpitem = tkinter.Menu(menu, tearoff=0)
         helpitem.add_command(label='Help', command=self.help)
         helpitem.add_command(label='About', command=self.about)
+        menu.add_cascade(label='File', menu=openfileitem)
+        menu.add_cascade(label='Settings', menu=settingsitem)
         menu.add_cascade(label='Help', menu=helpitem)
         self.config(menu=menu)
 
