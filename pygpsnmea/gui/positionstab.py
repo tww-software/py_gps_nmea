@@ -4,8 +4,6 @@ tab to display a table of all the positions we have recorded
 
 import tkinter
 
-import pygpsnmea.export as export
-
 
 class PosRepTab(tkinter.ttk.Frame):
     """
@@ -17,7 +15,7 @@ class PosRepTab(tkinter.ttk.Frame):
     Args:
         tabcontrol(tkinter.ttk.Notebook): ttk notebook to add this tab to
     """
-    
+
     def __init__(self, tabcontrol):
         tkinter.ttk.Frame.__init__(self, tabcontrol)
         self.autoscroll = tkinter.BooleanVar()
@@ -39,8 +37,6 @@ class PosRepTab(tkinter.ttk.Frame):
         self.tree.configure(yscrollcommand=verticalscrollbar.set,
                             xscrollcommand=horizontalscrollbar.set)
         self.create_message_table()
-
-
 
     def create_message_table(self):
         """

@@ -25,10 +25,10 @@ def open_file_generator(filepath):
 def open_text_file(filepath):
     """
     open a text file and read NMEA sentences from it
-    
+
     Args:
         filepath(str): full path to NMEA text file
-        
+
     Returns:
         sentencemanager(nmea.NMEASentenceManager): object to organise the
                                                    nmea sentences

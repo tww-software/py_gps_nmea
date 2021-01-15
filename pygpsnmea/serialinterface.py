@@ -26,8 +26,7 @@ class SerialInterface():
         if logpath:
             self.setup_file_handler(logpath)
 
-
-    def setup_file_handler(outputpath):
+    def setup_file_handler(self, outputpath):
         """
         setup the logger to save NMEA sentences to a file
 
@@ -54,6 +53,7 @@ class SerialInterface():
                 dataqueue.put(sentence)
             except UnicodeDecodeError:
                 continue
+
 
 def mp_serial_interface(dataqueue, device, baud, logpath=None):
     """

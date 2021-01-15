@@ -14,7 +14,7 @@ import pygpsnmea.sentences.sentence as sentences
 def calculate_time_duration(start, end):
     """
     calculate how long between two times
-    
+
     Args:
         start(datetime.datetime): the start time
         end(datetime.datetime): the end time
@@ -37,7 +37,7 @@ def calculate_time_duration(start, end):
 def calculate_altitudes_and_speeds(positions, altunits='M'):
     """
     calculate the highest, fastest and lowest values for speed and altitude
-    
+
     Args:
         positions(list): list of dicts, each dict is a position report
 
@@ -59,7 +59,7 @@ def calculate_altitudes_and_speeds(positions, altunits='M'):
             pass
     if speeds:
         maxspeed = max(speeds)
-        avgspeed = round(statistics.fmean(speeds),  3)
+        avgspeed = round(statistics.fmean(speeds), 3)
         records['maximum speed (knots)'] = maxspeed
         records['average speed (knots)'] = avgspeed
     if alts:
@@ -97,7 +97,7 @@ class NMEASentenceManager():
 
         Args:
             sentence(str): NMEA sentence
-            
+
         Returns:
             newpos(dict): position report
         """
@@ -136,7 +136,7 @@ class NMEASentenceManager():
                 if sentencetype in allsentences.SATELLITESTRACKED:
                     newpos['satellites tracked'] = \
                         newsentence.satellitestracked
-            except (sentences.CheckSumFailed) as err:
+            except sentences.CheckSumFailed:
                 self.checksumerrors += 1
                 errorflag = True
             except ValueError:
@@ -178,7 +178,7 @@ class NMEASentenceManager():
     def stats(self):
         """
         return stats from this NMEA manager
-        
+
         Returns:
             stats(dict): dict full of stats from this NMEA manager object
         """
@@ -199,7 +199,7 @@ class NMEASentenceManager():
         stats['speeds and altitudes'] = calculate_altitudes_and_speeds(
             self.positions)
         return stats
-        
+
     def create_kml_map(self, outputfile, verbose=True):
         """
         create a kml map from all the positions we have
@@ -224,7 +224,7 @@ class NMEASentenceManager():
                 kmlmap.add_kml_placemark(
                     str(poscount), posdesc, str(posrep['longitude']),
                     str(posrep['latitude']), timestamp=kmltime)
-                poscount +=1
+                poscount += 1
         kmlmap.add_kml_placemark(
             'end', 'ending position', str(end['longitude']),
             str(end['latitude']))

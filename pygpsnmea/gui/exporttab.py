@@ -2,8 +2,6 @@
 tab to allow the user to export data in different formats
 """
 
-import logging
-import os
 import tkinter
 
 import pygpsnmea.export as export
@@ -19,7 +17,6 @@ class ExportAborted(Exception):
     """
     raise if we cancel an export operation
     """
-    pass
 
 
 class ExportTab(tkinter.ttk.Frame):
@@ -102,12 +99,13 @@ class ExportTab(tkinter.ttk.Frame):
             filetypes=(("comma seperated values", "*.csv"),
                        ("All Files", "*.*")))
         if outputfile:
-            tabledata = self.tabs.window.sentencemanager.create_positions_table()
+            tabledata = \
+                self.tabs.window.sentencemanager.create_positions_table()
             export.write_csv_file(tabledata, outputfile)
         else:
             raise ExportAborted('Export cancelled by user.')
 
-    def export_kml(self, kmz=False):
+    def export_kml(self):
         """
         pop open a file browser to allow the user to choose where to save the
         file and then save file to that location

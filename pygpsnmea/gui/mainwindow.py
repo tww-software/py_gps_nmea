@@ -3,7 +3,6 @@ A GUI for PY GPS NMEA written with tkinter
 """
 
 import datetime
-import logging
 import multiprocessing
 import threading
 import time
@@ -48,6 +47,7 @@ class TabControl(tkinter.ttk.Notebook):
         self.exporttab = exporttab.ExportTab(self)
         self.add(self.exporttab, text='Export')
 
+
 class BasicGUI(tkinter.Tk):
     """
     a basic GUI using tkinter to control the program
@@ -56,7 +56,6 @@ class BasicGUI(tkinter.Tk):
         sentencemanager(nmea.NMEASentenceManager):deals with the NMEA sentences
         statuslabel(tkinter.Label): forms the status bar at the top of the
                                     main window
-        
     """
 
     serialsettings = {'Serial Device': '',
@@ -85,7 +84,10 @@ class BasicGUI(tkinter.Tk):
         """
         clear the gui of all data
         """
-        res = tkinter.messagebox.askyesno('Clearing GUI', 'Are you sure?')
+        if prompt:
+            res = tkinter.messagebox.askyesno('Clearing GUI', 'Are you sure?')
+        else:
+            res = True
         if res:
             if self.serialread:
                 tkinter.messagebox.showwarning(
@@ -96,7 +98,7 @@ class BasicGUI(tkinter.Tk):
                 self.tabcontrol.sentencestab.clear()
                 self.tabcontrol.statstab.clear()
                 self.tabcontrol.positionstab.tree.delete(
-                        *self.tabcontrol.positionstab.tree.get_children())
+                    *self.tabcontrol.positionstab.tree.get_children())
 
     def serial_settings(self):
         """
@@ -133,14 +135,13 @@ class BasicGUI(tkinter.Tk):
         """
         display version, licence and who created it
         """
-        messagewindow = aismessagetab.MessageWindow(self)
-        messagewindow.msgdetailsbox.append_text(guihelp.LICENCE)
+        pass
 
     def help(self):
         """
         display the help window
         """
-        guihelp.HelpWindow(self)
+        pass
 
     def start_serial_read(self):
         """
@@ -148,10 +149,10 @@ class BasicGUI(tkinter.Tk):
         """
         self.serialread = True
         self.serialprocess = multiprocessing.Process(
-                target=serialinterface.mp_serial_interface,
-                args=[self.mpq, self.serialsettings['Serial Device'],
-                      self.serialsettings['Baud Rate']],
-                kwargs={'logpath': self.serialsettings['Log File Path']})
+            target=serialinterface.mp_serial_interface,
+            args=[self.mpq, self.serialsettings['Serial Device'],
+                  self.serialsettings['Baud Rate']],
+            kwargs={'logpath': self.serialsettings['Log File Path']})
         self.serialprocess.start()
         self.updateguithread = threading.Thread(
             target=self.updategui, args=(self.stopevent,))
@@ -179,8 +180,8 @@ class BasicGUI(tkinter.Tk):
         self.updateguithread = None
         self.refreshguithread = None
         tkinter.messagebox.showinfo(
-        'Network', 'Stopped read from {}'.format(
-            self.serialsettings['Serial Device']))
+            'Network', 'Stopped read from {}'.format(
+                self.serialsettings['Serial Device']))
         self.statuslabel.config(text='', bg='light grey')
 
     def open_file(self):
@@ -192,13 +193,13 @@ class BasicGUI(tkinter.Tk):
             tkinter.messagebox.showwarning(
                 'WARNING', 'Stop reading from the serial device first!')
         else:
-            inputfile = tkinter.filedialog.askopenfilename()
+            inputfile = tkinter.filedialog.askopenfilename(
+                filetypes=(("NMEA 0183 text files", "*.txt *.nmea"),))
             self.clear_gui(prompt=False)
-            filetypes=(("NMEA 0183 text files", "*.txt *.nmea"))
             self.statuslabel.config(
                 text='Loading capture file - {}'.format(inputfile),
                 fg='black', bg='gold')
-            self.update_idletasks() 
+            self.update_idletasks()
             self.sentencemanager = capturefile.open_text_file(inputfile)
             poscounter = 1
             for pos in self.sentencemanager.positions:
@@ -215,7 +216,7 @@ class BasicGUI(tkinter.Tk):
             self.statuslabel.config(
                 text='Loaded capture file - {}'.format(inputfile),
                 fg='black', bg='light grey')
-            self.update_idletasks() 
+            self.update_idletasks()
 
     def updategui(self, stopevent):
         """
@@ -227,7 +228,7 @@ class BasicGUI(tkinter.Tk):
         Args:
             stopevent(threading.Event): a threading stop event
         """
-        msgno = 1
+        poscounter = 1
         while not stopevent.is_set():
             qdata = self.mpq.get()
             if qdata:
@@ -235,8 +236,9 @@ class BasicGUI(tkinter.Tk):
                 if posrep:
                     self.tabcontrol.sentencestab.append_text(qdata)
                     latestpos = [poscounter, posrep['latitude'],
-                             posrep['longitude'], posrep['time']]
+                                 posrep['longitude'], posrep['time']]
                     self.tabcontrol.positionstab.add_new_line(latestpos)
+                    poscounter += 1
 
     def refreshgui(self, stopevent):
         """
@@ -253,7 +255,7 @@ class BasicGUI(tkinter.Tk):
                 printablestats = export.create_summary_text(filestats)
                 self.tabcontrol.statstab.txtbox.clear()
                 self.tabcontrol.statstab.txtbox.insert(
-                tkinter.INSERT, printablestats)
+                    tkinter.INSERT, printablestats)
                 time.sleep(1)
 
     def quit(self):

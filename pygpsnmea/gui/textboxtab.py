@@ -5,7 +5,6 @@ useful tab with a single scrollable text box
 import tkinter
 
 
-
 class TextBoxTab(tkinter.ttk.Frame):
     """
     tab to display NMEA Sentences, statistics and large text strings
@@ -66,7 +65,7 @@ class TextBoxTab(tkinter.ttk.Frame):
         self.txtbox.mark_set(tkinter.INSERT, "1.0")
         self.txtbox.see(tkinter.INSERT)
         return 'break'
-        
+
     def clear(self):
         """
         clear the text box
