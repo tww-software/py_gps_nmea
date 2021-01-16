@@ -86,7 +86,7 @@ class NMEASentenceManager():
     def __init__(self):
         self.sentences = []
         self.sentencetypes = collections.Counter()
-        self.positions = []
+        self.positions = collections.OrderedDict()
         self.datetimes = []
         self.lastdate = ''
         self.checksumerrors = 0
@@ -124,26 +124,29 @@ class NMEASentenceManager():
                         tstr = self.lastdate + ' ' + newsentence.time
                         newdt = datetime.datetime.strptime(
                             tstr, '%d%m%y %H%M%S.%f')
-                        newpos['time'] = newdt.strftime('%Y/%m/%d %T')
-                if sentencetype in allsentences.DATETIME:
-                    self.datetimes.append(newsentence.datetime)
-                if sentencetype in allsentences.ALTITUDES:
-                    newpos['altitude'] = newsentence.altitude
-                if sentencetype in allsentences.SPEEDS:
-                    newpos['speed (knots)'] = newsentence.speed
-                if sentencetype in allsentences.FIXQUALITY:
-                    newpos['fix quality'] = newsentence.fixquality
-                if sentencetype in allsentences.SATELLITESTRACKED:
-                    newpos['satellites tracked'] = \
-                        newsentence.satellitestracked
+                        timestr = newdt.strftime('%Y/%m/%d %T')
+                        newpos['time'] = timestr 
+                    if sentencetype in allsentences.DATETIME:
+                        self.datetimes.append(newsentence.datetime)
+                    if sentencetype in allsentences.ALTITUDES:
+                        newpos['altitude'] = newsentence.altitude
+                    if sentencetype in allsentences.SPEEDS:
+                        newpos['speed (knots)'] = newsentence.speed
+                    if sentencetype in allsentences.FIXQUALITY:
+                        newpos['fix quality'] = newsentence.fixquality
+                    if sentencetype in allsentences.SATELLITESTRACKED:
+                        newpos['satellites tracked'] = \
+                            newsentence.satellitestracked
+                    if not errorflag:
+                        try:
+                            self.positions[timestr].update(newpos)
+                        except KeyError:
+                            self.positions[timestr] = newpos
             except sentences.CheckSumFailed:
                 self.checksumerrors += 1
                 errorflag = True
             except ValueError:
                 errorflag = True
-            if not errorflag and sentencetype in allsentences.LATLONTIME:
-                self.positions.append(newpos)
-                return newpos
 
     def get_latest_position(self):
         """
@@ -156,7 +159,8 @@ class NMEASentenceManager():
             self.positions(dict): last item in self.positions
         """
         try:
-            return self.positions[len(self.positions) - 1]
+            positionlist = list(self.positions.values())
+            return positionlist[len(positionlist) - 1]
         except (IndexError, AttributeError) as err:
             raise NoSuitablePositionReport('Unknown') from err
 
@@ -171,7 +175,8 @@ class NMEASentenceManager():
             self.positions(dict): last item in self.positions
         """
         try:
-            return self.positions[0]
+            positionlist = list(self.positions.values())
+            return positionlist[0]
         except (IndexError, AttributeError) as err:
             raise NoSuitablePositionReport('Unknown') from err
 
@@ -197,7 +202,7 @@ class NMEASentenceManager():
         stats['duration'] = calculate_time_duration(
             self.datetimes[0], self.datetimes[len(self.datetimes) - 1])
         stats['speeds and altitudes'] = calculate_altitudes_and_speeds(
-            self.positions)
+            list(self.positions.values()))
         return stats
 
     def create_kml_map(self, outputfile, verbose=True):
@@ -210,15 +215,16 @@ class NMEASentenceManager():
         except NoSuitablePositionReport as err:
             print('unable to make KML map')
             raise err
+        poslist = list(self.positions.values())
         kmlmap = kml.KMLOutputParser(outputfile)
         kmlmap.create_kml_header('test')
-        kmlmap.add_kml_placemark_linestring('linestring', self.positions)
+        kmlmap.add_kml_placemark_linestring('linestring', poslist)
         kmlmap.add_kml_placemark(
             'start', 'starting position', str(start['longitude']),
             str(start['latitude']))
         if verbose:
             poscount = 2
-            for posrep in self.positions[1:len(self.positions) - 2]:
+            for posrep in poslist[1:len(self.positions) - 2]:
                 kmltime = kml.convert_timestamp_to_kmltimestamp(posrep['time'])
                 posdesc = kmlmap.format_kml_placemark_description(posrep)
                 kmlmap.add_kml_placemark(
@@ -238,7 +244,7 @@ class NMEASentenceManager():
         positiontable = []
         headers = ['latitude', 'longitude', 'time']
         positiontable.append(headers)
-        for posrep in self.positions:
+        for posrep in list(self.positions.values()):
             line = []
             line.append(posrep['latitude'])
             line.append(posrep['longitude'])

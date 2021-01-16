@@ -72,10 +72,16 @@ class BasicGUI(tkinter.Tk):
         self.statuslabel.pack(fill=tkinter.X)
         self.serialread = False
         self.serialprocess = None
-        self.updateguithread = None
-        self.refreshguithread = None
+        self.poscounter = 1
+        self.recordedtimes = []
         self.mpq = multiprocessing.Queue()
         self.stopevent = threading.Event()
+        self.updateguithread = threading.Thread(
+            target=self.updategui, args=(self.stopevent,))
+        self.updateguithread.setDaemon(True)
+        self.refreshguithread = threading.Thread(
+            target=self.refreshgui, args=(self.stopevent,))
+        self.refreshguithread.setDaemon(True)
         self.tabcontrol = TabControl(self)
         self.tabcontrol.pack(expand=1, fill='both')
         self.top_menu()
@@ -99,6 +105,7 @@ class BasicGUI(tkinter.Tk):
                 self.tabcontrol.statstab.clear()
                 self.tabcontrol.positionstab.tree.delete(
                     *self.tabcontrol.positionstab.tree.get_children())
+                self.poscounter = 1
 
     def serial_settings(self):
         """
@@ -147,21 +154,26 @@ class BasicGUI(tkinter.Tk):
         """
         start reading from a serial device
         """
+        if self.serialsettings['Serial Device'] == '':
+            tkinter.messagebox.showwarning(
+                'Serial Device', 'please specify a serial device to read from')
+            return
         self.serialread = True
+        self.stopevent.clear()
         self.serialprocess = multiprocessing.Process(
             target=serialinterface.mp_serial_interface,
             args=[self.mpq, self.serialsettings['Serial Device'],
                   self.serialsettings['Baud Rate']],
             kwargs={'logpath': self.serialsettings['Log File Path']})
         self.serialprocess.start()
-        self.updateguithread = threading.Thread(
-            target=self.updategui, args=(self.stopevent,))
-        self.updateguithread.setDaemon(True)
-        self.updateguithread.start()
-        self.refreshguithread = threading.Thread(
-            target=self.refreshgui, args=(self.stopevent,))
-        self.refreshguithread.setDaemon(True)
-        self.refreshguithread.start()
+        try:
+            self.updateguithread.start()
+        except RuntimeError:
+            pass
+        try:
+            self.refreshguithread.start()
+        except RuntimeError:
+            pass
         self.statuslabel.config(
             text='Reading NMEA sentences from {}'.format(
                 self.serialsettings['Serial Device']),
@@ -173,14 +185,12 @@ class BasicGUI(tkinter.Tk):
         """
         self.serialread = False
         self.serialprocess.terminate()
+        self.serialprocess = None
         self.stopevent.set()
         self.updateguithread.join(timeout=1)
         self.refreshguithread.join(timeout=1)
-        self.serialprocess = None
-        self.updateguithread = None
-        self.refreshguithread = None
         tkinter.messagebox.showinfo(
-            'Network', 'Stopped read from {}'.format(
+            'Serial Device', 'Stopped read from {}'.format(
                 self.serialsettings['Serial Device']))
         self.statuslabel.config(text='', bg='light grey')
 
@@ -201,12 +211,12 @@ class BasicGUI(tkinter.Tk):
                 fg='black', bg='gold')
             self.update_idletasks()
             self.sentencemanager = capturefile.open_text_file(inputfile)
-            poscounter = 1
-            for pos in self.sentencemanager.positions:
-                latestpos = [poscounter, pos['latitude'],
+            for ts in self.sentencemanager.positions:
+                pos = self.sentencemanager.positions[ts]
+                latestpos = [self.poscounter, pos['latitude'],
                              pos['longitude'], pos['time']]
                 self.tabcontrol.positionstab.add_new_line(latestpos)
-                poscounter += 1
+                self.poscounter += 1
             for sentence in self.sentencemanager.sentences:
                 self.tabcontrol.sentencestab.append_text(sentence)
             filestats = self.sentencemanager.stats()
@@ -228,17 +238,22 @@ class BasicGUI(tkinter.Tk):
         Args:
             stopevent(threading.Event): a threading stop event
         """
-        poscounter = 1
         while not stopevent.is_set():
             qdata = self.mpq.get()
             if qdata:
-                posrep = self.sentencemanager.process_sentence(qdata)
-                if posrep:
-                    self.tabcontrol.sentencestab.append_text(qdata)
-                    latestpos = [poscounter, posrep['latitude'],
-                                 posrep['longitude'], posrep['time']]
-                    self.tabcontrol.positionstab.add_new_line(latestpos)
-                    poscounter += 1
+                self.tabcontrol.sentencestab.append_text(qdata)
+                self.sentencemanager.process_sentence(qdata)
+                try:
+                    posrep = self.sentencemanager.get_latest_position()
+                    if posrep['time'] not in self.recordedtimes:
+                        self.tabcontrol.sentencestab.append_text(qdata)
+                        latestpos = [self.poscounter, posrep['latitude'],
+                                     posrep['longitude'], posrep['time']]
+                        self.tabcontrol.positionstab.add_new_line(latestpos)
+                        self.poscounter += 1
+                        self.recordedtimes.append(posrep['time'])
+                except nmea.NoSuitablePositionReport:
+                    continue
 
     def refreshgui(self, stopevent):
         """
@@ -253,7 +268,7 @@ class BasicGUI(tkinter.Tk):
             if currenttime.endswith('5'):
                 filestats = self.sentencemanager.stats()
                 printablestats = export.create_summary_text(filestats)
-                self.tabcontrol.statstab.txtbox.clear()
+                self.tabcontrol.statstab.clear()
                 self.tabcontrol.statstab.txtbox.insert(
                     tkinter.INSERT, printablestats)
                 time.sleep(1)

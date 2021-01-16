@@ -19,10 +19,10 @@ class SerialInterface():
         self.interface = serial.Serial(serialdevice, baudrate)
         self.seriallog = logging.getLogger('serialport')
         self.seriallog.setLevel(logging.INFO)
-        terminallogformatter = logging.Formatter(fmt='%(message)s')
-        terminalhandler = logging.StreamHandler()
-        terminalhandler.setFormatter(terminallogformatter)
-        self.seriallog.addHandler(terminalhandler)
+        #terminallogformatter = logging.Formatter(fmt='%(message)s')
+        #terminalhandler = logging.StreamHandler()
+        #terminalhandler.setFormatter(terminallogformatter)
+        #self.seriallog.addHandler(terminalhandler)
         if logpath:
             self.setup_file_handler(logpath)
 

@@ -108,5 +108,5 @@ class SerialSettingsWindow(tkinter.Toplevel):
             self.window.serialsettings['Log File Path'] = self.logpath.get()
             self.window.serialsettings['KML File Path'] = self.kmlpath.get()
             tkinter.messagebox.showinfo(
-                'Network Settings', 'Network Settings Saved', parent=self)
+                'Serial Settings', 'Serial Settings Saved', parent=self)
         self.destroy()
