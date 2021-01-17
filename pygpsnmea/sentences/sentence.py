@@ -53,15 +53,18 @@ def calculate_nmea_checksum(sentence, start='$', seperator=','):
         True: if calculated checksum = checksum at the end of the sentence
         False: if checksums do not match
     """
-    sentencelist = sentence.rstrip().split(seperator)
-    csum = hex(int(sentencelist[len(sentencelist) - 1].split('*')[1], 16))
-    start = sentence.find(start) + 1
-    end = sentence.find('*')
-    data = sentence[start:end]
-    chksum = 0
-    for char in data:
-        chksum ^= ord(char)
-    chksum = hex(int(chksum))
+    try:
+        sentencelist = sentence.rstrip().split(seperator)
+        csum = hex(int(sentencelist[len(sentencelist) - 1].split('*')[1], 16))
+        start = sentence.find(start) + 1
+        end = sentence.find('*')
+        data = sentence[start:end]
+        chksum = 0
+        for char in data:
+            chksum ^= ord(char)
+        chksum = hex(int(chksum))
+    except IndexError:
+        return False
     return bool(csum == chksum)
 
 
