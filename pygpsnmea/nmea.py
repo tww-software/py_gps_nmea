@@ -90,6 +90,7 @@ class NMEASentenceManager():
         self.datetimes = []
         self.lastdate = ''
         self.checksumerrors = 0
+        self.positioncount = 0
 
     def process_sentence(self, sentence):
         """
@@ -142,6 +143,7 @@ class NMEASentenceManager():
                             self.positions[timestr].update(newpos)
                         except KeyError:
                             self.positions[timestr] = newpos
+                            self.positioncount += 1
             except sentences.CheckSumFailed:
                 self.checksumerrors += 1
                 errorflag = True
@@ -188,8 +190,7 @@ class NMEASentenceManager():
             stats(dict): dict full of stats from this NMEA manager object
         """
         stats = {}
-        stats['total sentences'] = len(self.sentences)
-        stats['total positions'] = len(self.positions)
+        stats['total positions'] = self.positioncount
         stats['checksum errors'] = self.checksumerrors
         try:
             firstpos = self.get_start_position()

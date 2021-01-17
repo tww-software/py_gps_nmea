@@ -14,12 +14,14 @@ import tkinter.ttk
 
 import pygpsnmea.capturefile as capturefile
 import pygpsnmea.export as export
+import pygpsnmea.kml as kml
 import pygpsnmea.nmea as nmea
 import pygpsnmea.serialinterface as serialinterface
 import pygpsnmea.version as version
 
 import pygpsnmea.gui.exporttab as exporttab
 import pygpsnmea.gui.positionstab as positionstab
+import pygpsnmea.gui.statustab as statustab
 import pygpsnmea.gui.textboxtab as textboxtab
 import pygpsnmea.gui.serialsettingswindow as serialsettingswindow
 
@@ -38,8 +40,8 @@ class TabControl(tkinter.ttk.Notebook):
     def __init__(self, window):
         tkinter.ttk.Notebook.__init__(self, window)
         self.window = window
-        self.statstab = textboxtab.TextBoxTab(self)
-        self.add(self.statstab, text='Stats')
+        self.statustab = statustab.StatusTab(self)
+        self.add(self.statustab, text='Status')
         self.sentencestab = textboxtab.TextBoxTab(self)
         self.add(self.sentencestab, text='Sentences')
         self.positionstab = positionstab.PosRepTab(self)
@@ -72,19 +74,22 @@ class BasicGUI(tkinter.Tk):
         self.statuslabel.pack(fill=tkinter.X)
         self.serialread = False
         self.serialprocess = None
+        self.livemap = None
         self.poscounter = 1
         self.recordedtimes = []
         self.mpq = multiprocessing.Queue()
+        
+        
         self.stopevent = threading.Event()
-        self.updateguithread = threading.Thread(
-            target=self.updategui, args=(self.stopevent,))
-        self.updateguithread.setDaemon(True)
-        self.refreshguithread = threading.Thread(
-            target=self.refreshgui, args=(self.stopevent,))
-        self.refreshguithread.setDaemon(True)
+        
+        
+        self.updateguithread = None
+        self.refreshguithread = None
+        
         self.tabcontrol = TabControl(self)
         self.tabcontrol.pack(expand=1, fill='both')
         self.top_menu()
+        self.threadlock = threading.Lock()
 
     def clear_gui(self, prompt=True):
         """
@@ -102,7 +107,6 @@ class BasicGUI(tkinter.Tk):
             else:
                 self.statuslabel.config(text='', bg='light grey')
                 self.tabcontrol.sentencestab.clear()
-                self.tabcontrol.statstab.clear()
                 self.tabcontrol.positionstab.tree.delete(
                     *self.tabcontrol.positionstab.tree.get_children())
                 self.poscounter = 1
@@ -158,22 +162,28 @@ class BasicGUI(tkinter.Tk):
             tkinter.messagebox.showwarning(
                 'Serial Device', 'please specify a serial device to read from')
             return
+        if self.serialsettings['KML File Path'] != '':
+            self.livemap = kml.LiveKMLMap(self.serialsettings['KML File Path'])
+            self.livemap.create_netlink_file()
         self.serialread = True
         self.stopevent.clear()
+        self.updateguithread = threading.Thread(
+            target=self.updategui, args=(self.stopevent,))
+        self.updateguithread.setDaemon(True)
+        self.refreshguithread = threading.Thread(
+            target=self.refreshgui, args=(self.stopevent,))
+        self.refreshguithread.setDaemon(True)
+        if not self.updateguithread.is_alive():
+            self.updateguithread.start()
+        if not self.refreshguithread.is_alive():
+            self.refreshguithread.start()
         self.serialprocess = multiprocessing.Process(
             target=serialinterface.mp_serial_interface,
             args=[self.mpq, self.serialsettings['Serial Device'],
                   self.serialsettings['Baud Rate']],
             kwargs={'logpath': self.serialsettings['Log File Path']})
         self.serialprocess.start()
-        try:
-            self.updateguithread.start()
-        except RuntimeError:
-            pass
-        try:
-            self.refreshguithread.start()
-        except RuntimeError:
-            pass
+
         self.statuslabel.config(
             text='Reading NMEA sentences from {}'.format(
                 self.serialsettings['Serial Device']),
@@ -189,6 +199,8 @@ class BasicGUI(tkinter.Tk):
         self.stopevent.set()
         self.updateguithread.join(timeout=1)
         self.refreshguithread.join(timeout=1)
+        self.updateguithread = None
+        self.refreshguithread = None
         tkinter.messagebox.showinfo(
             'Serial Device', 'Stopped read from {}'.format(
                 self.serialsettings['Serial Device']))
@@ -219,10 +231,6 @@ class BasicGUI(tkinter.Tk):
                 self.poscounter += 1
             for sentence in self.sentencemanager.sentences:
                 self.tabcontrol.sentencestab.append_text(sentence)
-            filestats = self.sentencemanager.stats()
-            printablestats = export.create_summary_text(filestats)
-            self.tabcontrol.statstab.txtbox.insert(
-                tkinter.INSERT, printablestats)
             self.statuslabel.config(
                 text='Loaded capture file - {}'.format(inputfile),
                 fg='black', bg='light grey')
@@ -241,19 +249,28 @@ class BasicGUI(tkinter.Tk):
         while not stopevent.is_set():
             qdata = self.mpq.get()
             if qdata:
-                self.tabcontrol.sentencestab.append_text(qdata)
-                self.sentencemanager.process_sentence(qdata)
-                try:
-                    posrep = self.sentencemanager.get_latest_position()
-                    if posrep['time'] not in self.recordedtimes:
-                        self.tabcontrol.sentencestab.append_text(qdata)
-                        latestpos = [self.poscounter, posrep['latitude'],
-                                     posrep['longitude'], posrep['time']]
-                        self.tabcontrol.positionstab.add_new_line(latestpos)
-                        self.poscounter += 1
-                        self.recordedtimes.append(posrep['time'])
-                except nmea.NoSuitablePositionReport:
-                    continue
+                with self.threadlock:
+                    self.tabcontrol.sentencestab.append_text(qdata)
+                    self.sentencemanager.process_sentence(qdata)
+                    try:
+                        posrep = self.sentencemanager.get_latest_position()
+                        if posrep['time'] not in self.recordedtimes:
+                            self.tabcontrol.sentencestab.append_text(qdata)
+                            latestpos = [self.poscounter, posrep['latitude'],
+                                         posrep['longitude'], posrep['time']]
+                            self.tabcontrol.positionstab.add_new_line(latestpos)
+                            self.poscounter += 1
+                            self.recordedtimes.append(posrep['time'])
+                            if self.livemap:
+                                self.livemap.create_kml_header('live map')
+                                self.livemap.add_kml_placemark(
+                                    posrep['time'], 'last known position',
+                                    str(posrep['longitude']),
+                                    str(posrep['latitude']))
+                                self.livemap.close_kml_file()
+                                self.livemap.write_kml_doc_file()
+                    except nmea.NoSuitablePositionReport:
+                        continue
 
     def refreshgui(self, stopevent):
         """
@@ -263,20 +280,12 @@ class BasicGUI(tkinter.Tk):
             stopevent(threading.Event): a threading stop event
         """
         while not stopevent.is_set():
-            currenttime = datetime.datetime.utcnow().strftime(
-                '%Y/%m/%d %H:%M:%S')
-            if currenttime.endswith('5'):
-                filestats = self.sentencemanager.stats()
-                printablestats = export.create_summary_text(filestats)
-                self.tabcontrol.statstab.clear()
-                self.tabcontrol.statstab.txtbox.insert(
-                    tkinter.INSERT, printablestats)
-                time.sleep(1)
+            self.tabcontrol.statustab.write_stats()
 
     def quit(self):
         """
         open a confirmation box asking if the user wants to quit if yes then
-        stop the server and exit the program
+        stop the serial device and exit the program
         """
         res = tkinter.messagebox.askyesno('Exiting Program', 'Are you sure?')
         if res:
