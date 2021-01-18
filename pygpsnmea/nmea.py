@@ -84,6 +84,12 @@ class NMEASentenceManager():
     """
 
     def __init__(self):
+        self.clear_data()
+
+    def clear_data(self):
+        """
+        clear and start afresh
+        """
         self.sentences = []
         self.sentencetypes = collections.Counter()
         self.positions = collections.OrderedDict()
@@ -142,8 +148,9 @@ class NMEASentenceManager():
                         try:
                             self.positions[timestr].update(newpos)
                         except KeyError:
-                            self.positions[timestr] = newpos
                             self.positioncount += 1
+                            newpos['position no'] = self.positioncount
+                            self.positions[timestr] = newpos
             except sentences.CheckSumFailed:
                 self.checksumerrors += 1
                 errorflag = True

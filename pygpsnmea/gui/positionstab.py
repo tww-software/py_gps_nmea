@@ -63,3 +63,9 @@ class PosRepTab(tkinter.ttk.Frame):
         self.counter += 1
         if self.autoscroll.get() == 1:
             self.tree.yview_moveto(1)
+
+    def clear(self):
+        """
+        clear the tree of all data
+        """
+        self.tree.delete(*self.tree.get_children())

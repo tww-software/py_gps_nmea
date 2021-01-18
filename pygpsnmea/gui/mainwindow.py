@@ -75,17 +75,11 @@ class BasicGUI(tkinter.Tk):
         self.serialread = False
         self.serialprocess = None
         self.livemap = None
-        self.poscounter = 1
         self.recordedtimes = []
         self.mpq = multiprocessing.Queue()
-        
-        
         self.stopevent = threading.Event()
-        
-        
         self.updateguithread = None
         self.currentupdatethreadid = None
-        
         self.tabcontrol = TabControl(self)
         self.tabcontrol.pack(expand=1, fill='both')
         self.top_menu()
@@ -96,7 +90,8 @@ class BasicGUI(tkinter.Tk):
         clear the gui of all data
         """
         if prompt:
-            res = tkinter.messagebox.askyesno('Clearing GUI', 'Are you sure?')
+            res = tkinter.messagebox.askyesno(
+                'Clearing GUI', 'Unexported data will be lost, are you sure?')
         else:
             res = True
         if res:
@@ -107,9 +102,10 @@ class BasicGUI(tkinter.Tk):
             else:
                 self.statuslabel.config(text='', bg='light grey')
                 self.tabcontrol.sentencestab.clear()
-                self.tabcontrol.positionstab.tree.delete(
-                    *self.tabcontrol.positionstab.tree.get_children())
-                self.poscounter = 1
+                self.tabcontrol.positionstab.clear()
+                self.tabcontrol.statustab.clear_stats()
+                self.sentencemanager.clear_data()
+                self.update_idletasks()
 
     def serial_settings(self):
         """
@@ -221,12 +217,12 @@ class BasicGUI(tkinter.Tk):
             self.sentencemanager = capturefile.open_text_file(inputfile)
             for ts in self.sentencemanager.positions:
                 pos = self.sentencemanager.positions[ts]
-                latestpos = [self.poscounter, pos['latitude'],
+                latestpos = [pos['position no'], pos['latitude'],
                              pos['longitude'], pos['time']]
                 self.tabcontrol.positionstab.add_new_line(latestpos)
-                self.poscounter += 1
             for sentence in self.sentencemanager.sentences:
                 self.tabcontrol.sentencestab.append_text(sentence)
+            self.tabcontrol.statustab.write_stats()
             self.statuslabel.config(
                 text='Loaded capture file - {}'.format(inputfile),
                 fg='black', bg='light grey')
@@ -254,11 +250,10 @@ class BasicGUI(tkinter.Tk):
                             if posrep['time'] not in self.recordedtimes:
                                 self.tabcontrol.sentencestab.append_text(qdata)
                                 latestpos = [
-                                    self.poscounter, posrep['latitude'],
+                                    posrep['position no'], posrep['latitude'],
                                     posrep['longitude'], posrep['time']]
                                 self.tabcontrol.positionstab.add_new_line(
                                     latestpos)
-                                self.poscounter += 1
                                 self.recordedtimes.append(posrep['time'])
                                 if self.livemap:
                                     self.livemap.create_kml_header('live map')
