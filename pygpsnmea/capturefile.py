@@ -33,7 +33,9 @@ def open_text_file(filepath):
         sentencemanager(nmea.NMEASentenceManager): object to organise the
                                                    nmea sentences
     """
+    sentences = []
     sentencemanager = nmea.NMEASentenceManager()
     for line in open_file_generator(filepath):
         sentencemanager.process_sentence(line)
-    return sentencemanager
+        sentences.append(line)
+    return sentencemanager, sentences

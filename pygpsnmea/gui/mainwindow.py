@@ -214,13 +214,14 @@ class BasicGUI(tkinter.Tk):
                 text='Loading capture file - {}'.format(inputfile),
                 fg='black', bg='gold')
             self.update_idletasks()
-            self.sentencemanager = capturefile.open_text_file(inputfile)
+            self.sentencemanager, sentences = \
+                capturefile.open_text_file(inputfile)
             for ts in self.sentencemanager.positions:
                 pos = self.sentencemanager.positions[ts]
                 latestpos = [pos['position no'], pos['latitude'],
                              pos['longitude'], pos['time']]
                 self.tabcontrol.positionstab.add_new_line(latestpos)
-            for sentence in self.sentencemanager.sentences:
+            for sentence in sentences:
                 self.tabcontrol.sentencestab.append_text(sentence)
             self.tabcontrol.statustab.write_stats()
             self.statuslabel.config(
