@@ -84,7 +84,7 @@ class BasicGUI(tkinter.Tk):
         
         
         self.updateguithread = None
-        self.refreshguithread = None
+        self.currentupdatethreadid = None
         
         self.tabcontrol = TabControl(self)
         self.tabcontrol.pack(expand=1, fill='both')
@@ -169,14 +169,10 @@ class BasicGUI(tkinter.Tk):
         self.stopevent.clear()
         self.updateguithread = threading.Thread(
             target=self.updategui, args=(self.stopevent,))
-        self.updateguithread.setDaemon(True)
-        self.refreshguithread = threading.Thread(
-            target=self.refreshgui, args=(self.stopevent,))
-        self.refreshguithread.setDaemon(True)
+        self.updateguithread.setDaemon(True) 
         if not self.updateguithread.is_alive():
             self.updateguithread.start()
-        if not self.refreshguithread.is_alive():
-            self.refreshguithread.start()
+            self.currentupdatethreadid = self.updateguithread.ident
         self.serialprocess = multiprocessing.Process(
             target=serialinterface.mp_serial_interface,
             args=[self.mpq, self.serialsettings['Serial Device'],
@@ -198,9 +194,9 @@ class BasicGUI(tkinter.Tk):
         self.serialprocess = None
         self.stopevent.set()
         self.updateguithread.join(timeout=1)
-        self.refreshguithread.join(timeout=1)
+        self.currentupdatethreadid = None
         self.updateguithread = None
-        self.refreshguithread = None
+
         tkinter.messagebox.showinfo(
             'Serial Device', 'Stopped read from {}'.format(
                 self.serialsettings['Serial Device']))
@@ -247,40 +243,34 @@ class BasicGUI(tkinter.Tk):
             stopevent(threading.Event): a threading stop event
         """
         while not stopevent.is_set():
-            qdata = self.mpq.get()
-            if qdata:
-                with self.threadlock:
-                    self.tabcontrol.sentencestab.append_text(qdata)
-                    self.sentencemanager.process_sentence(qdata)
-                    try:
-                        posrep = self.sentencemanager.get_latest_position()
-                        if posrep['time'] not in self.recordedtimes:
-                            self.tabcontrol.sentencestab.append_text(qdata)
-                            latestpos = [self.poscounter, posrep['latitude'],
-                                         posrep['longitude'], posrep['time']]
-                            self.tabcontrol.positionstab.add_new_line(latestpos)
-                            self.poscounter += 1
-                            self.recordedtimes.append(posrep['time'])
-                            if self.livemap:
-                                self.livemap.create_kml_header('live map')
-                                self.livemap.add_kml_placemark(
-                                    posrep['time'], 'last known position',
-                                    str(posrep['longitude']),
-                                    str(posrep['latitude']))
-                                self.livemap.close_kml_file()
-                                self.livemap.write_kml_doc_file()
-                    except nmea.NoSuitablePositionReport:
-                        continue
-
-    def refreshgui(self, stopevent):
-        """
-        refresh and update the gui every 10 seconds, run in another thread
-
-        Args:
-            stopevent(threading.Event): a threading stop event
-        """
-        while not stopevent.is_set():
-            self.tabcontrol.statustab.write_stats()
+            if threading.get_ident() == self.currentupdatethreadid:
+                qdata = self.mpq.get()
+                if qdata:
+                    with self.threadlock:
+                        self.tabcontrol.sentencestab.append_text(qdata)
+                        self.sentencemanager.process_sentence(qdata)
+                        try:
+                            posrep = self.sentencemanager.get_latest_position()
+                            if posrep['time'] not in self.recordedtimes:
+                                self.tabcontrol.sentencestab.append_text(qdata)
+                                latestpos = [
+                                    self.poscounter, posrep['latitude'],
+                                    posrep['longitude'], posrep['time']]
+                                self.tabcontrol.positionstab.add_new_line(
+                                    latestpos)
+                                self.poscounter += 1
+                                self.recordedtimes.append(posrep['time'])
+                                if self.livemap:
+                                    self.livemap.create_kml_header('live map')
+                                    self.livemap.add_kml_placemark(
+                                        posrep['time'], 'last known position',
+                                        str(posrep['longitude']),
+                                        str(posrep['latitude']))
+                                    self.livemap.close_kml_file()
+                                    self.livemap.write_kml_doc_file()
+                            self.tabcontrol.statustab.write_stats()
+                        except nmea.NoSuitablePositionReport:
+                            continue
 
     def quit(self):
         """
