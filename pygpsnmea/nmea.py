@@ -90,7 +90,6 @@ class NMEASentenceManager():
         """
         clear and start afresh
         """
-        self.sentences = []
         self.sentencetypes = collections.Counter()
         self.positions = collections.OrderedDict()
         self.datetimes = []
@@ -108,7 +107,6 @@ class NMEASentenceManager():
         Returns:
             newpos(dict): position report
         """
-        self.sentences.append(sentence)
         sentencelist = sentence.split(',')
         sentencetype = sentencelist[0]
         self.sentencetypes[sentencetype] += 1
