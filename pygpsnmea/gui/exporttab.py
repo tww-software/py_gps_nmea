@@ -10,7 +10,8 @@ import pygpsnmea.export as export
 EXPORTHELP = {
     'CSV': ('Comma Separated Values file containing latitudes, longitudes and'
             'timestamps'),
-    'KML':  'KML map of all the positions'}
+    'KML':  'KML map of all the positions',
+    'NMEA': 'NMEA sentences - content of the sentences tab'}
 
 
 class ExportAborted(Exception):
@@ -42,7 +43,7 @@ class ExportTab(tkinter.ttk.Frame):
         populate the export options drop down menu with file export options
         and add an export button next to it
         """
-        self.exportoptions['values'] = ('CSV', 'KML')
+        self.exportoptions['values'] = ('CSV', 'KML', 'NMEA')
         self.exportoptions.set('KML')
         self.exportoptions.grid(column=1, row=1)
         self.exporthelplabel.grid(column=2, row=1)
@@ -65,7 +66,8 @@ class ExportTab(tkinter.ttk.Frame):
         else:
             commands = {
                 'CSV': self.export_csv,
-                'KML': self.export_kml}
+                'KML': self.export_kml,
+                'NMEA': self.export_nmea}
             option = self.exportoptions.get()
             try:
                 commands[option]()
@@ -120,5 +122,23 @@ class ExportTab(tkinter.ttk.Frame):
         if outputfile:
             self.tabs.window.sentencemanager.create_kml_map(
                 outputfile)
+        else:
+            raise ExportAborted('Export cancelled by user.')
+
+    def export_nmea(self):
+        """
+        pop open a file browser to allow the user to choose where to save the
+        file and then save file to that location
+
+        Raises:
+            ExportAborted: if the user clicks cancel
+        """
+        outputfile = tkinter.filedialog.asksaveasfilename(
+            defaultextension=".nmea",
+            filetypes=(("NMEA 0183 text files", "*.txt *.nmea"),
+                       ("All Files", "*.*")))
+        if outputfile:
+            sentences = self.tabs.sentencestab.txtbox.get(1.0, "end-1c")
+            export.write_text_file(sentences, outputfile)
         else:
             raise ExportAborted('Export cancelled by user.')

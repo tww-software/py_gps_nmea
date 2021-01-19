@@ -39,3 +39,14 @@ def write_csv_file(lines, outpath, dialect='excel'):
     with open(outpath, 'w') as outfile:
         csvwriter = csv.writer(outfile, dialect=dialect)
         csvwriter.writerows(lines)
+
+def write_text_file(text, outpath):
+    """
+    write out text to a file
+    
+    Args:
+        text(str): text to write out to a file
+        outpath(str): path to write to
+    """
+    with open(outpath, 'w') as outfile:
+        outfile.write(text)
