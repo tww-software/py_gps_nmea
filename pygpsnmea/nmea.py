@@ -225,20 +225,24 @@ class NMEASentenceManager():
         kmlmap = kml.KMLOutputParser(outputfile)
         kmlmap.create_kml_header('test')
         kmlmap.add_kml_placemark_linestring('linestring', poslist)
+        startdesc = kmlmap.format_kml_placemark_description(start)
         kmlmap.add_kml_placemark(
-            'start', 'starting position', str(start['longitude']),
+            'start', startdesc, str(start['longitude']),
             str(start['latitude']))
         if verbose:
+            kmlmap.open_folder('points')
             poscount = 2
-            for posrep in poslist[1:len(self.positions) - 2]:
+            for posrep in poslist[1:len(self.positions) - 1]:
                 kmltime = kml.convert_timestamp_to_kmltimestamp(posrep['time'])
                 posdesc = kmlmap.format_kml_placemark_description(posrep)
                 kmlmap.add_kml_placemark(
                     str(poscount), posdesc, str(posrep['longitude']),
                     str(posrep['latitude']), timestamp=kmltime)
                 poscount += 1
+            kmlmap.close_folder()
+        enddesc = kmlmap.format_kml_placemark_description(end)
         kmlmap.add_kml_placemark(
-            'end', 'ending position', str(end['longitude']),
+            'end', enddesc, str(end['longitude']),
             str(end['latitude']))
         kmlmap.close_kml_file()
         kmlmap.write_kml_doc_file()
