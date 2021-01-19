@@ -257,6 +257,7 @@ class BasicGUI(tkinter.Tk):
                                     latestpos)
                                 self.recordedtimes.append(posrep['time'])
                                 if self.livemap:
+                                    self.livemap.kmldoc.clear()
                                     self.livemap.create_kml_header('live map')
                                     self.livemap.add_kml_placemark(
                                         posrep['time'], 'last known position',
