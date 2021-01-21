@@ -7,6 +7,7 @@ import datetime
 import statistics
 
 import pygpsnmea.allsentences as allsentences
+import pygpsnmea.geojson as geojson
 import pygpsnmea.kml as kml
 import pygpsnmea.sentences.sentence as sentences
 
@@ -130,7 +131,7 @@ class NMEASentenceManager():
                         newdt = datetime.datetime.strptime(
                             tstr, '%d%m%y %H%M%S.%f')
                         timestr = newdt.strftime('%Y/%m/%d %T')
-                        newpos['time'] = timestr 
+                        newpos['time'] = timestr
                     if sentencetype in allsentences.DATETIME:
                         self.datetimes.append(newsentence.datetime)
                     if sentencetype in allsentences.ALTITUDES:
@@ -246,6 +247,35 @@ class NMEASentenceManager():
             str(end['latitude']))
         kmlmap.close_kml_file()
         kmlmap.write_kml_doc_file()
+
+    def create_geojson_map(self, outputfile, verbose=True):
+        """
+        create a geojson map from the positions we have
+        """
+        try:
+            start = self.get_start_position()
+            end = self.get_latest_position()
+        except NoSuitablePositionReport as err:
+            print('unable to make GEOJSON map')
+            raise err
+        poslist = list(self.positions.values())
+        geojsonmap = geojson.GeoJsonParser()
+        coords = [[pos['latitude'], pos['longitude']] for pos in poslist]
+        stats = self.stats()
+        linestrproperties = {
+            'total positions': stats['total positions'],
+            'duration': stats['duration']}
+        geojsonmap.add_map_linestring(coords, linestrproperties)
+        geojsonmap.add_map_point(start, start['longitude'],
+                                 start['latitude'])
+        if verbose:
+            poscount = 2
+            for posrep in poslist[1:len(self.positions) - 1]:
+                geojsonmap.add_map_point(
+                    posrep, posrep['longitude'], posrep['latitude'])
+        geojsonmap.add_map_point(end, end['longitude'],
+                                 end['latitude'])
+        geojsonmap.save_to_file(outputfile)
 
     def create_positions_table(self):
         """

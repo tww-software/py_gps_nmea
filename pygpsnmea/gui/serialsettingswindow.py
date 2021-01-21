@@ -91,8 +91,11 @@ class SerialSettingsWindow(tkinter.Toplevel):
         """
         open a dialogue box to choose where we save KMl data to
         """
-        outputdir = tkinter.filedialog.askdirectory()
-        self.kmlpath.insert(0, outputdir)
+        outputfile = tkinter.filedialog.asksaveasfilename(
+            defaultextension=".kml",
+            filetypes=(("KML Keyhole Markup Language", "*.kml"),
+                       ("All Files", "*.*")))
+        self.kmlpath.insert(0, outputfile)
 
     def save_settings(self):
         """

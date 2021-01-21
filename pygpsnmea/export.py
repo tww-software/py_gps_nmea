@@ -43,7 +43,7 @@ def write_csv_file(lines, outpath, dialect='excel'):
 def write_text_file(text, outpath):
     """
     write out text to a file
-    
+
     Args:
         text(str): text to write out to a file
         outpath(str): path to write to

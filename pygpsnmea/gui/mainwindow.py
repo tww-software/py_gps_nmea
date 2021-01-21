@@ -2,10 +2,8 @@
 A GUI for PY GPS NMEA written with tkinter
 """
 
-import datetime
 import multiprocessing
 import threading
-import time
 import tkinter
 import tkinter.filedialog
 import tkinter.messagebox
@@ -13,7 +11,6 @@ import tkinter.scrolledtext
 import tkinter.ttk
 
 import pygpsnmea.capturefile as capturefile
-import pygpsnmea.export as export
 import pygpsnmea.kml as kml
 import pygpsnmea.nmea as nmea
 import pygpsnmea.serialinterface as serialinterface
@@ -142,13 +139,11 @@ class BasicGUI(tkinter.Tk):
         """
         display version, licence and who created it
         """
-        pass
 
     def help(self):
         """
         display the help window
         """
-        pass
 
     def start_serial_read(self):
         """
@@ -165,7 +160,7 @@ class BasicGUI(tkinter.Tk):
         self.stopevent.clear()
         self.updateguithread = threading.Thread(
             target=self.updategui, args=(self.stopevent,))
-        self.updateguithread.setDaemon(True) 
+        self.updateguithread.setDaemon(True)
         if not self.updateguithread.is_alive():
             self.updateguithread.start()
             self.currentupdatethreadid = self.updateguithread.ident
@@ -216,8 +211,8 @@ class BasicGUI(tkinter.Tk):
             self.update_idletasks()
             self.sentencemanager, sentences = \
                 capturefile.open_text_file(inputfile)
-            for ts in self.sentencemanager.positions:
-                pos = self.sentencemanager.positions[ts]
+            for tstamp in self.sentencemanager.positions:
+                pos = self.sentencemanager.positions[tstamp]
                 latestpos = [pos['position no'], pos['latitude'],
                              pos['longitude'], pos['time']]
                 self.tabcontrol.positionstab.add_new_line(latestpos)
