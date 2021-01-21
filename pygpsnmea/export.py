@@ -50,3 +50,18 @@ def write_text_file(text, outpath):
     """
     with open(outpath, 'w') as outfile:
         outfile.write(text)
+
+def write_json_lines(datalist, outpath):
+    """
+    take a list of dictionaries and write them out to a JSON lines file
+
+    Note:
+        JSON lines is a text file where each new line is a separate JSON string
+
+    Args:
+        datalist(list): a list of dictionaries to write out
+        outpath(str): the full filepath to write to
+    """
+    with open(outpath, 'w') as jsonlines:
+        for jdict in datalist:
+            jsonlines.write(json.dumps(jdict) + '\n')
