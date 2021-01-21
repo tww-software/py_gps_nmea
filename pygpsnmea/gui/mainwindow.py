@@ -202,27 +202,33 @@ class BasicGUI(tkinter.Tk):
             tkinter.messagebox.showwarning(
                 'WARNING', 'Stop reading from the serial device first!')
         else:
-            inputfile = tkinter.filedialog.askopenfilename(
-                filetypes=(("NMEA 0183 text files", "*.txt *.nmea"),))
-            self.clear_gui(prompt=False)
-            self.statuslabel.config(
-                text='Loading capture file - {}'.format(inputfile),
-                fg='black', bg='gold')
-            self.update_idletasks()
-            self.sentencemanager, sentences = \
-                capturefile.open_text_file(inputfile)
-            for tstamp in self.sentencemanager.positions:
-                pos = self.sentencemanager.positions[tstamp]
-                latestpos = [pos['position no'], pos['latitude'],
-                             pos['longitude'], pos['time']]
-                self.tabcontrol.positionstab.add_new_line(latestpos)
-            for sentence in sentences:
-                self.tabcontrol.sentencestab.append_text(sentence)
-            self.tabcontrol.statustab.write_stats()
-            self.statuslabel.config(
-                text='Loaded capture file - {}'.format(inputfile),
-                fg='black', bg='light grey')
-            self.update_idletasks()
+            try:
+                inputfile = tkinter.filedialog.askopenfilename(
+                    filetypes=(("NMEA 0183 text files", "*.txt *.nmea"),))
+                if inputfile:
+                    self.clear_gui(prompt=False)
+                    self.statuslabel.config(
+                        text='Loading capture file - {}'.format(inputfile),
+                        fg='black', bg='gold')
+                    self.update_idletasks()
+                    self.sentencemanager, sentences = \
+                        capturefile.open_text_file(inputfile)
+                    for tstamp in self.sentencemanager.positions:
+                        pos = self.sentencemanager.positions[tstamp]
+                        latestpos = [pos['position no'], pos['latitude'],
+                                     pos['longitude'], pos['time']]
+                        self.tabcontrol.positionstab.add_new_line(latestpos)
+                    for sentence in sentences:
+                        self.tabcontrol.sentencestab.append_text(sentence)
+                    self.tabcontrol.statustab.write_stats()
+                    self.statuslabel.config(
+                        text='Loaded capture file - {}'.format(inputfile),
+                        fg='black', bg='light grey')
+                    self.update_idletasks()
+            except (FileNotFoundError, TypeError):
+                self.statuslabel.config(text='', bg='light grey')
+                self.update_idletasks()
+                return
 
     def updategui(self, stopevent):
         """
