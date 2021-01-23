@@ -54,6 +54,28 @@ class SerialInterface():
             except UnicodeDecodeError:
                 continue
 
+def test_serial_interface_connection(serialdevice, baudrate):
+    """
+    test if we can successfully read from this serial device by reading
+    1 bytes from the interface
+    
+    Args:
+        serialdevice(str): path to the serial device to test
+        baudrate(int): baud rate in bps for the device
+      
+    Returns:
+        True: if we can read from the device
+            
+    Raises:
+        serial.SerialException: if we cannot read from the device
+        """
+    try:
+        interface = serial.Serial(serialdevice, baudrate)
+        interface.read()
+        return True
+    except serial.SerialException as err:
+        raise err
+
 
 def mp_serial_interface(dataqueue, device, baud, logpath=None):
     """

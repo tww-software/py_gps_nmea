@@ -2,6 +2,7 @@
 A GUI for PY GPS NMEA written with tkinter
 """
 
+import os
 import multiprocessing
 import threading
 import tkinter
@@ -21,6 +22,8 @@ import pygpsnmea.gui.positionstab as positionstab
 import pygpsnmea.gui.statustab as statustab
 import pygpsnmea.gui.textboxtab as textboxtab
 import pygpsnmea.gui.serialsettingswindow as serialsettingswindow
+
+import serial
 
 
 class TabControl(tkinter.ttk.Notebook):
@@ -153,6 +156,22 @@ class BasicGUI(tkinter.Tk):
             tkinter.messagebox.showwarning(
                 'Serial Device', 'please specify a serial device to read from')
             return
+        if not os.path.exists(self.serialsettings['Serial Device']):     
+            tkinter.messagebox.showerror(
+                'Serial Device',
+                'path to device "{}" does not exist'.format(
+                    self.serialsettings['Serial Device']))
+            return
+        try:
+            serialinterface.test_serial_interface_connection(
+                self.serialsettings['Serial Device'],
+                self.serialsettings['Baud Rate'])
+        except serial.SerialException:
+            tkinter.messagebox.showerror(
+                'Serial Device',
+                'cannot read from serial device "{}"'.format(
+                    self.serialsettings['Serial Device']))
+            return
         if self.serialsettings['KML File Path'] != '':
             self.livemap = kml.LiveKMLMap(self.serialsettings['KML File Path'])
             self.livemap.create_netlink_file()
@@ -170,7 +189,6 @@ class BasicGUI(tkinter.Tk):
                   self.serialsettings['Baud Rate']],
             kwargs={'logpath': self.serialsettings['Log File Path']})
         self.serialprocess.start()
-
         self.statuslabel.config(
             text='Reading NMEA sentences from {}'.format(
                 self.serialsettings['Serial Device']),

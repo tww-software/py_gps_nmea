@@ -45,6 +45,7 @@ def calculate_altitudes_and_speeds(positions, altunits='M'):
     Returns:
         records(dict): dictionary of stats for speeds and altitudes
     """
+    altlabel = 'altitude ({})'.format(altunits)
     alts = []
     speeds = []
     records = {}
@@ -54,7 +55,7 @@ def calculate_altitudes_and_speeds(positions, altunits='M'):
         except KeyError:
             pass
         try:
-            altfloat = float(posrep['altitude'].rstrip(' ' + altunits))
+            altfloat = float(posrep[altlabel].rstrip(' ' + altunits))
             alts.append(altfloat)
         except KeyError:
             pass
@@ -97,6 +98,7 @@ class NMEASentenceManager():
         self.lastdate = ''
         self.checksumerrors = 0
         self.positioncount = 0
+        self.altitudeunits = ''
 
     def process_sentence(self, sentence):
         """
@@ -135,7 +137,11 @@ class NMEASentenceManager():
                     if sentencetype in allsentences.DATETIME:
                         self.datetimes.append(newsentence.datetime)
                     if sentencetype in allsentences.ALTITUDES:
-                        newpos['altitude'] = newsentence.altitude
+                        if self.altitudeunits == '':
+                            self.altitudeunits = newsentence.altitudeunits
+                        altlabel = \
+                            'altitude ({})'.format(newsentence.altitudeunits)
+                        newpos[altlabel] = newsentence.altitude
                     if sentencetype in allsentences.SPEEDS:
                         newpos['speed (knots)'] = newsentence.speed
                     if sentencetype in allsentences.FIXQUALITY:
@@ -209,7 +215,7 @@ class NMEASentenceManager():
         stats['duration'] = calculate_time_duration(
             self.datetimes[0], self.datetimes[len(self.datetimes) - 1])
         stats['speeds and altitudes'] = calculate_altitudes_and_speeds(
-            list(self.positions.values()))
+            list(self.positions.values()), altunits=self.altitudeunits)
         return stats
 
     def create_kml_map(self, outputfile, verbose=True):
