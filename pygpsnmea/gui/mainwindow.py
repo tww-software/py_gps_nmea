@@ -20,10 +20,11 @@ import pygpsnmea.serialinterface as serialinterface
 import pygpsnmea.version as version
 
 import pygpsnmea.gui.exporttab as exporttab
+import pygpsnmea.gui.guihelp as guihelp
 import pygpsnmea.gui.positionstab as positionstab
+import pygpsnmea.gui.serialsettingswindow as serialsettingswindow
 import pygpsnmea.gui.statustab as statustab
 import pygpsnmea.gui.textboxtab as textboxtab
-import pygpsnmea.gui.serialsettingswindow as serialsettingswindow
 
 
 class TabControl(tkinter.ttk.Notebook):
@@ -132,21 +133,16 @@ class BasicGUI(tkinter.Tk):
             label='Stop read from serial port', command=self.stop_serial_read)
         helpitem = tkinter.Menu(menu, tearoff=0)
         helpitem.add_command(label='Help', command=self.help)
-        helpitem.add_command(label='About', command=self.about)
         menu.add_cascade(label='File', menu=openfileitem)
         menu.add_cascade(label='Settings', menu=settingsitem)
         menu.add_cascade(label='Help', menu=helpitem)
         self.config(menu=menu)
 
-    def about(self):
-        """
-        display version, licence and who created it
-        """
-
     def help(self):
         """
         display the help window
         """
+        guihelp.HelpWindow(self)
 
     def start_serial_read(self):
         """

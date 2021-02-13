@@ -2,4 +2,5 @@
 current version of PY GPS NMEA
 """
 
-VERSION = '2020.12'
+VERSION = '2021.02'
+YEAR = '2021'
