@@ -68,7 +68,7 @@ class GeoJsonParser():
     def add_map_linestring(self, coords, properties):
         """
         add a linestring to the GEOJSON
-        
+
        Args:
             coords(list): list of lists each containing 2 elements latitude
                           and longitude

@@ -11,6 +11,8 @@ import tkinter.messagebox
 import tkinter.scrolledtext
 import tkinter.ttk
 
+import serial
+
 import pygpsnmea.capturefile as capturefile
 import pygpsnmea.kml as kml
 import pygpsnmea.nmea as nmea
@@ -22,8 +24,6 @@ import pygpsnmea.gui.positionstab as positionstab
 import pygpsnmea.gui.statustab as statustab
 import pygpsnmea.gui.textboxtab as textboxtab
 import pygpsnmea.gui.serialsettingswindow as serialsettingswindow
-
-import serial
 
 
 class TabControl(tkinter.ttk.Notebook):
@@ -156,7 +156,7 @@ class BasicGUI(tkinter.Tk):
             tkinter.messagebox.showwarning(
                 'Serial Device', 'please specify a serial device to read from')
             return
-        if not os.path.exists(self.serialsettings['Serial Device']):     
+        if not os.path.exists(self.serialsettings['Serial Device']):
             tkinter.messagebox.showerror(
                 'Serial Device',
                 'path to device "{}" does not exist'.format(

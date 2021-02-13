@@ -6,6 +6,7 @@ import tkinter
 
 import pygpsnmea.nmea as nmea
 
+
 class StatusTab(tkinter.ttk.Frame):
     """
     display GPS current position status

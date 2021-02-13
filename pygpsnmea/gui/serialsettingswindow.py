@@ -5,6 +5,8 @@ GPS devices
 
 import tkinter
 
+import serial.tools.list_ports
+
 
 class SerialSettingsWindow(tkinter.Toplevel):
     """
@@ -30,8 +32,18 @@ class SerialSettingsWindow(tkinter.Toplevel):
         group all the network settings within a tkinter LabelFrame
         """
         serialgroup = tkinter.LabelFrame(
-            self, text="Network settings", padx=10, pady=10)
+            self, text="Serial settings", padx=10, pady=10)
         serialgroup.pack(fill="both", expand="yes")
+        txtboxlabel = tkinter.Label(
+            serialgroup, text='Detected Serial Devices')
+        txtboxlabel.pack()
+        txtbox = tkinter.scrolledtext.ScrolledText(
+            serialgroup, selectbackground='cyan', width=30, height=10)
+        txtbox.pack()
+        devices = serial.tools.list_ports.comports()
+        for detected in devices:
+            txtbox.insert(tkinter.INSERT, detected)
+            txtbox.insert(tkinter.INSERT, '\n')
         devicelabel = tkinter.Label(serialgroup, text='Serial Device')
         devicelabel.pack()
         self.device = tkinter.Entry(serialgroup)

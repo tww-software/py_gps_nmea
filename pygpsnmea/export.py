@@ -40,6 +40,7 @@ def write_csv_file(lines, outpath, dialect='excel'):
         csvwriter = csv.writer(outfile, dialect=dialect)
         csvwriter.writerows(lines)
 
+
 def write_text_file(text, outpath):
     """
     write out text to a file
@@ -50,6 +51,7 @@ def write_text_file(text, outpath):
     """
     with open(outpath, 'w') as outfile:
         outfile.write(text)
+
 
 def write_json_lines(datalist, outpath):
     """

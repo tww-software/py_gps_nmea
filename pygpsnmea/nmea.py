@@ -275,7 +275,6 @@ class NMEASentenceManager():
         geojsonmap.add_map_point(start, start['longitude'],
                                  start['latitude'])
         if verbose:
-            poscount = 2
             for posrep in poslist[1:len(self.positions) - 1]:
                 geojsonmap.add_map_point(
                     posrep, posrep['longitude'], posrep['latitude'])
