@@ -186,7 +186,7 @@ class NMEASentenceManager():
             NoSuitablePositionReport: if no position found
 
         Returns:
-            self.positions(dict): last item in self.positions
+            self.positions(dict): first item in self.positions
         """
         try:
             positionlist = list(self.positions.values())
