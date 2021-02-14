@@ -61,7 +61,7 @@ def calculate_altitudes_and_speeds(positions, altunits='M'):
             pass
     if speeds:
         maxspeed = max(speeds)
-        avgspeed = round(statistics.fmean(speeds), 3)
+        avgspeed = round(statistics.mean(speeds), 3)
         records['maximum speed (knots)'] = maxspeed
         records['average speed (knots)'] = avgspeed
     if alts:
@@ -106,9 +106,6 @@ class NMEASentenceManager():
 
         Args:
             sentence(str): NMEA sentence
-
-        Returns:
-            newpos(dict): position report
         """
         sentencelist = sentence.split(',')
         sentencetype = sentencelist[0]

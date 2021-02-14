@@ -2,6 +2,7 @@
 Unit Tests for PY GPS NMEA
 """
 
+import collections
 import datetime
 import unittest
 import xml.etree.ElementTree
@@ -149,6 +150,42 @@ class NMEASentenceManagerTests(unittest.TestCase):
         test['positions after'] = self.sentencemanager.positioncount
         self.assertEqual(test, expected)
 
+    def test_empty_stats(self):
+        """
+        test stats on an empty sentence manager, only checksum errors and
+        total messages should be returned and both should be 0
+        """
+        expected = {'total positions': 0, 'checksum errors': 0}
+        test = self.sentencemanager.stats()
+        self.assertEqual(expected, test)
+
+    def test_stats(self):
+        """
+        test the stats method with actual NMEA data
+        """
+        self.feed_in_sentences()
+        test = self.sentencemanager.stats()
+        expected = {
+            'total positions': 12, 'checksum errors': 0,
+            'sentence types': collections.Counter({'$GNRMC': 12}),
+            'start position': {
+                'latitude': 51.87371903333333,
+                'longitude': -2.1712686333333333,
+                'time': '2021/02/10 13:57:34',
+                'speed (knots)': '0.0',
+                'position no': 1},
+            'end position': {
+                'latitude': 51.87045136666667,
+                'longitude': -2.1722006166666668,
+                'time': '2021/02/10 14:07:21',
+                'speed (knots)': '0.0',
+                'position no': 12},
+            'duration': {
+                'days': 0.0, 'hours': 0.0, 'minutes': 9.0, 'seconds': 47},
+            'speeds and altitudes': {
+                'maximum speed (knots)': 2.8, 'average speed (knots)': 1.708}}
+        self.assertEqual(expected, test)
+
 
 class MiscTests(unittest.TestCase):
     """
@@ -164,6 +201,19 @@ class MiscTests(unittest.TestCase):
         end = datetime.datetime(2021, 2, 20, 18, 15)
         duration = nmea.calculate_time_duration(start, end)
         self.assertEqual(expected, duration)
+
+    def test_convert_to_decimal_degrees(self):
+        """
+        test converting latitude and longitude to decimal degrees
+        """
+        nmealat = '5152.227082'
+        latchar = 'N'
+        nmealon = '00210.332037'
+        lonchar = 'W'
+        result = sentence.latlon_decimaldegrees(
+            nmealat, latchar, nmealon, lonchar)
+        expected = (51.87045136666667, -2.1722006166666668)
+        self.assertEqual(result, expected)
 
 
 class GeoJSONTests(unittest.TestCase):
