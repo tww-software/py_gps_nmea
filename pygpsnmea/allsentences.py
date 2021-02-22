@@ -11,10 +11,13 @@ import pygpsnmea.sentences.gll
 ALLSENTENCES = {
     '$GPRMC': pygpsnmea.sentences.rmc.GPRMC,
     '$GNRMC': pygpsnmea.sentences.rmc.GNRMC,
+    '$GLRMC': pygpsnmea.sentences.rmc.GLRMC,
     '$GPGGA': pygpsnmea.sentences.gga.GPGGA,
     '$GNGGA': pygpsnmea.sentences.gga.GNGGA,
+    '$GLGGA': pygpsnmea.sentences.gga.GLGGA,
     '$GPGLL': pygpsnmea.sentences.gll.GPGLL,
-    '$GNGLL': pygpsnmea.sentences.gll.GNGLL}
+    '$GNGLL': pygpsnmea.sentences.gll.GNGLL,
+    '$GLGLL': pygpsnmea.sentences.gll.GLGLL}
 
 
 LATLONTIME = ('$GPRMC', '$GNRMC', '$GPGGA', '$GNGGA', '$GPGLL', '$GNGLL')
