@@ -41,6 +41,7 @@ def calculate_altitudes_and_speeds(positions, altunits='M'):
 
     Args:
         positions(list): list of dicts, each dict is a position report
+        altunits(str): altitude units, default is metres (M)
 
     Returns:
         records(dict): dictionary of stats for speeds and altitudes
@@ -83,6 +84,18 @@ class NoSuitablePositionReport(Exception):
 class NMEASentenceManager():
     """
     class to keep track of all the NMEA sentences
+
+    Attributes:
+        sentencetypes(collections.Counter): a count of the different sentence
+                                            types we have encountered
+        positions(collections.OrderedDict): all the positions in order of which
+                                            we recieved them
+        datetimes(list): all the datetimes - used to calculate duration
+        lastdate(str): the last known date we have
+        checksumerrors(int): the number of sentences with checksum errors we
+                             have encountered
+        positioncount(int): number of positions we have processed
+        altitudeunits(str): what do we measure altitude as
     """
 
     def __init__(self):
@@ -109,9 +122,9 @@ class NMEASentenceManager():
         """
         sentencelist = sentence.split(',')
         sentencetype = sentencelist[0]
-        self.sentencetypes[sentencetype] += 1
         errorflag = False
         if sentencetype in allsentences.ALLSENTENCES.keys():
+            self.sentencetypes[sentencetype] += 1
             try:
                 newsentence = \
                     allsentences.ALLSENTENCES[sentencetype](sentencelist)
@@ -218,6 +231,11 @@ class NMEASentenceManager():
     def create_kml_map(self, outputfile, verbose=True):
         """
         create a kml map from all the positions we have
+
+        Args:
+            outputfile(str): full file path to output
+            verbose(bool): should we plot every single position (default) or
+                           just the start and end with a linestring
         """
         try:
             start = self.get_start_position()
@@ -254,6 +272,11 @@ class NMEASentenceManager():
     def create_geojson_map(self, outputfile, verbose=True):
         """
         create a geojson map from the positions we have
+
+        Args:
+            outputfile(str): full file path to output
+            verbose(bool): should we plot every single position (default) or
+                           just the start and end with a linestring
         """
         try:
             start = self.get_start_position()
@@ -282,6 +305,10 @@ class NMEASentenceManager():
     def create_positions_table(self):
         """
         create a list of lists for csv file export of all the position reports
+
+        Returns:
+            positiontable(list): list of lists, each list inside is a row in the
+                                 position table
         """
         positiontable = []
         headers = ['latitude', 'longitude', 'time']
