@@ -32,6 +32,7 @@ def open_text_file(filepath):
     Returns:
         sentencemanager(nmea.NMEASentenceManager): object to organise the
                                                    nmea sentences
+        sentences(list): all the sentences as strings in a list
     """
     sentences = []
     sentencemanager = nmea.NMEASentenceManager()

@@ -13,6 +13,16 @@ import serial
 class SerialInterface():
     """
     class for the serial interface
+
+    Args:
+        serialdevice(str): the path to the serial devices
+        baudrate(int): the baud rate of the serial device
+        logpath(str): path for the file handler to setup logging to
+
+    Attributes:
+        interface(serial.Serial): the actual object to talk with
+                                  the serial device
+        seriallog(logging.logger): logger to log NMEA sentences
     """
 
     def __init__(self, serialdevice, baudrate, logpath=False):
@@ -41,6 +51,9 @@ class SerialInterface():
         """
         read data from the serial port constantly
         decode it to ASCII and log it
+
+        Args:
+            dataqueue(multiprocessing.Queue): queue to put data onto
         """
         while True:
             try:
@@ -77,6 +90,12 @@ def test_serial_interface_connection(serialdevice, baudrate):
 def mp_serial_interface(dataqueue, device, baud, logpath=None):
     """
     meant to be run in another process by the GUI
+
+    Args:
+        dataqueue(multiprocessing.Queue): queue to put data onto
+        device(str): the path to the serial devices
+        baud(int): baud rate of serial device
+        logpath(str): path for the file handler to setup logging to
     """
     serialint = SerialInterface(device, baud, logpath=logpath)
     serialint.read_from_serial(dataqueue)

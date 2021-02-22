@@ -22,9 +22,6 @@ class KMLOutputParser():
         kmlheader(str): first part of a KML file
         placemarktemplate(str): template for a KML placemark (pin on map)
         lineplacemarktemplate(str): template for KML linestring (line on map)
-        styletemplate(str): template for custom icons on placemarks
-        greenarrowtemplate(str): template for green (heading) arrows
-        orangearrowtemplate(str): template for orange (CoG) arrows
     """
     def __init__(self, kmlfilepath):
         self.kmldoc = []
