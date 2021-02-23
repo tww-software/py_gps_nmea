@@ -13,6 +13,15 @@ class StatusTab(tkinter.ttk.Frame):
 
     Args:
         tabcontrol(tkinter.ttk.Notebook): ttk notebook to add this tab to
+
+    Attributes:
+        tabs(tkinter.ttk.Notebook): ttk notebook to add this tab to
+        totalpositions(tkinter.Label): the total positions we have
+        checksumerrors(tkinter.Label): total check sum errors
+        latitude(tkinter.Label): latitude of last known position
+        longitude(tkinter.Label): longitude of last known position
+        time(tkinter.Label): time of last known position
+        
     """
 
     def __init__(self, tabcontrol):

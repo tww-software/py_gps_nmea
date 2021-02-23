@@ -14,6 +14,13 @@ class SerialSettingsWindow(tkinter.Toplevel):
 
     Args:
         window(tkinter.Tk): the main window this spawns from
+
+    Attributes:
+        window(tkinter.Tk): the main window this spawns from
+        device(tkinter.Entry): entry for the serial device
+        baudrate(tkinter.Entry): entry for the baud rate
+        logpath(tkinter.Entry): where to save the NMEA sentence log
+        kmlpath(tkinter.Entry): where to save a live kml map to
     """
 
     def __init__(self, window):

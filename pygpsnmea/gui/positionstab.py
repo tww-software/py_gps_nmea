@@ -14,6 +14,15 @@ class PosRepTab(tkinter.ttk.Frame):
 
     Args:
         tabcontrol(tkinter.ttk.Notebook): ttk notebook to add this tab to
+
+    Attributes:
+        autoscroll(tkinter.BooleanVar): if true autoscroll as new positions
+                                        are added
+        autoscrollchk(tkinter.Checkbutton): checkbox for autoscroll
+        tabs(tkinter.ttk.Notebook): other tabs in the GUI
+        counter(int): number of positions
+        tree(tkinter.ttk.Treeview): table of positions
+        
     """
 
     def __init__(self, tabcontrol):
@@ -40,7 +49,7 @@ class PosRepTab(tkinter.ttk.Frame):
 
     def create_message_table(self):
         """
-        draw a large table in messagetab of all the NMEA sentences we have
+        draw a large table in positions tab of all the NMEA sentences we have
         """
         self.tree.delete(*self.tree.get_children())
         headers = ['Position No', 'Latitude', 'Longitude', 'Timestamp']
@@ -56,10 +65,10 @@ class PosRepTab(tkinter.ttk.Frame):
         """
         add a new line to the tree table and scroll down to it
 
-        Note:
-            line[2] is the message type refered to in msg_line_colours
+        Args:
+            line(list): items in line are pos no, lat, lon, time
         """
-        self.tree.insert('', self.counter, values=line, tags=(line[2],))
+        self.tree.insert('', self.counter, values=line)
         self.counter += 1
         if self.autoscroll.get() == 1:
             self.tree.yview_moveto(1)

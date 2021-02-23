@@ -30,13 +30,20 @@ class ExportTab(tkinter.ttk.Frame):
 
     Args:
         tabcontrol(tkinter.ttk.Notebook): ttk notebook to add this tab to
+
+    Attributes:
+        tabs(tkinter.ttk.Notebook): ttk notebook to add this tab to
+        exportoptions(tkinter.ttk.Combobox): the drop down to choose what to
+                                             export to
+        exporthelplabel(tkinter.Label): displays a brief description on the
+                                        export format selected from the
+                                        exportoptions drop down menu
     """
 
     def __init__(self, tabcontrol):
         tkinter.ttk.Frame.__init__(self, tabcontrol)
         self.tabs = tabcontrol
         self.exportoptions = tkinter.ttk.Combobox(self, state='readonly')
-        self.orderby = tkinter.ttk.Combobox(self, state='readonly')
         self.exporthelplabel = tkinter.Label(self)
         self.export_options()
         self.exportoptions.bind("<<ComboboxSelected>>", self.show_export_help)

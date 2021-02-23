@@ -36,6 +36,14 @@ class TabControl(tkinter.ttk.Notebook):
 
     Args:
         window(tkinter.Tk): the main window this spawns from
+
+    Attributes:
+        window(tkinter.Tk): window to spawn from
+        statustab(statustab.StatusTab): first tab on the gui
+                                        display GPS position status
+        sentencestab(textboxtab.TextBoxTab): display all the NMEA sentences
+        positionstab(positionstab.PosRepTab): all the positions in a table
+        exporttab(exporttab.ExportTab): options to export files from PY GPS NMEA
     """
 
     def __init__(self, window):
@@ -56,9 +64,24 @@ class BasicGUI(tkinter.Tk):
     a basic GUI using tkinter to control the program
 
     Attributes:
-        sentencemanager(nmea.NMEASentenceManager):deals with the NMEA sentences
+        sentencemanager(nmea.NMEASentenceManager): deals with the NMEA sentences
         statuslabel(tkinter.Label): forms the status bar at the top of the
                                     main window
+        serialread(bool): are we reading from the serial device?
+        serialprocess(multiprocessing.Process): process to read from the
+                                                serial device
+        livemap(bool): are we writing out to a live kml map?
+        recordedtimes(list): list to hold timestamps
+        mpq(multiprocessing.Queue): queue to send/recieve data between processes
+        stopevent(threading.Event): event to stop read from serial device and
+                                    thread that updates the GUI displays
+        updateguithread(threading.Thread): thread used to update displayed
+                                           data in the GUI
+        currentupdatethreadid(int): id of the thread currently used to update
+                                    the GUI
+        tabcontrol(TabControl): object to organised the tabs in the GUI
+        threadlock(threading.Lock): used by the update thread to lock access to
+                                    the data it requires
     """
 
     serialsettings = {'Serial Device': '',
@@ -89,6 +112,10 @@ class BasicGUI(tkinter.Tk):
     def clear_gui(self, prompt=True):
         """
         clear the gui of all data
+
+        Args:
+            prompt(bool): if true prompt the user before clearing data
+                          default is True
         """
         if prompt:
             res = tkinter.messagebox.askyesno(

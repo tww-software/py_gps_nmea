@@ -15,6 +15,10 @@ class TextBoxTab(tkinter.ttk.Frame):
 
     Args:
         tabcontrol(tkinter.ttk.Notebook): ttk notebook to add this tab to
+
+    Attributes:
+        tabs(tkinter.ttk.Notebook): ttk notebook to add this tab to
+        txtbox(tkinter.scrolledtext.ScrolledText): text box to display text
     """
 
     def __init__(self, tabcontrol):
