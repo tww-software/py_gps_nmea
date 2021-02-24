@@ -22,7 +22,6 @@ class PosRepTab(tkinter.ttk.Frame):
         tabs(tkinter.ttk.Notebook): other tabs in the GUI
         counter(int): number of positions
         tree(tkinter.ttk.Treeview): table of positions
-        
     """
 
     def __init__(self, tabcontrol):

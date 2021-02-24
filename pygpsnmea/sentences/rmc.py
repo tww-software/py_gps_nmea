@@ -39,10 +39,7 @@ class RMC(sentence.NMEASentence):
         self.date = self.sentencelist[9]
         self.datetime = datetime.datetime.strptime(
             '{} {}'.format(self.time, self.date), '%H%M%S.%f %d%m%y')
-        if self.sentencelist[2] == 'A':
-            self.valid = True
-        else:
-            self.valid = False
+        self.valid = bool(self.sentencelist[2] == 'A')
         self.speed = self.sentencelist[7]
         self.cog = self.sentencelist[8]
 

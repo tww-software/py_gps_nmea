@@ -87,7 +87,6 @@ class HelpTab(tkinter.ttk.Frame):
     Attributes:
         helpoptions(tkinter.ttk.Combobox): drop down to select help topics
         helptxt(tkinter.scrolledtext.ScrolledText): text box to display help
-        
     """
 
     help = {'Introduction': INTRO,

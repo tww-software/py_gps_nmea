@@ -307,8 +307,8 @@ class NMEASentenceManager():
         create a list of lists for csv file export of all the position reports
 
         Returns:
-            positiontable(list): list of lists, each list inside is a row in the
-                                 position table
+            positiontable(list): list of lists, each list inside
+                                 is a row in the position table
         """
         positiontable = []
         headers = ['latitude', 'longitude', 'time']

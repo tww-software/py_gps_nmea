@@ -21,7 +21,6 @@ class StatusTab(tkinter.ttk.Frame):
         latitude(tkinter.Label): latitude of last known position
         longitude(tkinter.Label): longitude of last known position
         time(tkinter.Label): time of last known position
-        
     """
 
     def __init__(self, tabcontrol):

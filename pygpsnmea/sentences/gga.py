@@ -43,10 +43,8 @@ class GGA(sentence.NMEASentence):
         self.satellitestracked = self.sentencelist[7]
         self.altitude = self.sentencelist[9]
         self.altitudeunits = self.sentencelist[10]
-        if self.sentencelist[6] in ('1', '2', '3', '4', '5', '6'):
-            self.valid = True
-        else:
-            self.valid = False
+        self.valid = bool(self.sentencelist[6] in (
+            '1', '2', '3', '4', '5', '6'))
 
 
 class GPGGA(GGA):

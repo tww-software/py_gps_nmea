@@ -72,7 +72,7 @@ class ExportTab(tkinter.ttk.Frame):
             tkinter.messagebox.showwarning(
                 'WARNING',
                 'Cannot export files whilst reading from serial interface')
-        elif len(self.tabs.window.sentencemanager.positions) == 0:
+        elif not self.tabs.window.sentencemanager.positions:
             tkinter.messagebox.showwarning(
                 'WARNING', 'No positions to export.')
         else:

@@ -28,10 +28,7 @@ class GLL(sentence.NMEASentence):
                 self.sentencelist[1], self.sentencelist[2],
                 self.sentencelist[3], self.sentencelist[4])
         self.time = self.sentencelist[5]
-        if self.sentencelist[6] == 'A':
-            self.valid = True
-        else:
-            self.valid = False
+        self.valid = bool(self.sentencelist[6] == 'A')
 
 
 class GPGLL(GLL):
