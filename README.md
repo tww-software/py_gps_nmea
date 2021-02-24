@@ -56,12 +56,12 @@ GPS serial device.
 
 The export options are:
 
-CSV - Comma Separated Values file containing latitudes, longitudes andtimestamps
-TSV - Tab Separated Values file containing latitudes, longitudes andtimestamps
-KML - KML map of all the positions
-GEOJSON - GEOJSON map of all the positions
-JSON LINES - line delimited JSON output of all positions
-NMEA - NMEA sentences - content of the sentences tab
+* CSV - Comma Separated Values file containing latitudes, longitudes andtimestamps
+* TSV - Tab Separated Values file containing latitudes, longitudes andtimestamps
+* KML - KML map of all the positions
+* GEOJSON - GEOJSON map of all the positions
+* JSON LINES - line delimited JSON output of all positions
+* NMEA - NMEA sentences - content of the sentences tab
 
 Data cannot be exported whilst we are reading from a GPS serial device.
 
