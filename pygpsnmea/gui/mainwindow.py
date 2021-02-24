@@ -14,6 +14,7 @@ import tkinter.ttk
 import serial
 
 import pygpsnmea.capturefile as capturefile
+import pygpsnmea.export as export
 import pygpsnmea.kml as kml
 import pygpsnmea.nmea as nmea
 import pygpsnmea.serialinterface as serialinterface
@@ -25,6 +26,28 @@ import pygpsnmea.gui.positionstab as positionstab
 import pygpsnmea.gui.serialsettingswindow as serialsettingswindow
 import pygpsnmea.gui.statustab as statustab
 import pygpsnmea.gui.textboxtab as textboxtab
+
+
+class StatsWindow(tkinter.Toplevel):
+    """
+    pop out window to display GPS stats
+
+    Args:
+        window(tkinter.Tk): the main window to spawn from
+
+    Attributes:
+        window(tkinter.Tk): window to spawn from
+        helpbox(HelpTab): help tab with dropdown to select help topics
+    """
+
+    def __init__(self, window):
+        tkinter.Toplevel.__init__(self, window)
+        self.window = window
+        self.statsbox = textboxtab.TextBoxTab(self)
+        self.statsbox.pack()
+        currentstats = self.window.sentencemanager.stats()
+        displaytxt = export.create_summary_text(currentstats)
+        self.statsbox.append_text(displaytxt)
 
 
 class TabControl(tkinter.ttk.Notebook):
@@ -160,9 +183,10 @@ class BasicGUI(tkinter.Tk):
             label='Stop read from serial port', command=self.stop_serial_read)
         helpitem = tkinter.Menu(menu, tearoff=0)
         helpitem.add_command(label='Help', command=self.help)
+        helpitem.add_command(label='Stats', command=self.stats)
         menu.add_cascade(label='File', menu=openfileitem)
         menu.add_cascade(label='Settings', menu=settingsitem)
-        menu.add_cascade(label='Help', menu=helpitem)
+        menu.add_cascade(label='Info', menu=helpitem)
         self.config(menu=menu)
 
     def help(self):
@@ -170,6 +194,16 @@ class BasicGUI(tkinter.Tk):
         display the help window
         """
         guihelp.HelpWindow(self)
+
+    def stats(self):
+        """
+        display gps stats
+        """
+        if self.serialread:
+            tkinter.messagebox.showwarning(
+                'WARNING', 'Stop reading from the serial device first!')
+        else:
+            StatsWindow(self)
 
     def start_serial_read(self):
         """
